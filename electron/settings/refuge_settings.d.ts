@@ -1,15 +1,16 @@
 export class GameSettings {
-    gamePath: string;
-    gameVersion: string;
+    currentGamePath: string;
+    currentGameVersion: string;
+    otherGamePaths: string[];
 }
 
 export class LocalizationSettings {
-    localizaiton_id: string;
+    localizaitonId: string;
     version: number;
-    font_version: number;
+    fontVersion: number;
 }
 
-export class RefugeSittings {
-    game_settings: GameSettings;
-    localization_settings: LocalizationSettings;
+export class RefugeSettings {
+    gameSettings: GameSettings | null;
+    localizationSettings: LocalizationSettings | null;
 }

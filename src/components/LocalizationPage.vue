@@ -1,37 +1,82 @@
 <script lang="ts">
 import { NButton, NDropdown } from 'naive-ui'
 import { Announcement } from '../../electron/network/CirnoAPIProperty'
+import { RefugeSettings } from '../../electron/settings/refuge_settings'
+import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
+import Store  from 'electron-store'
+import path from 'path'
+
+const store = new Store()
+
+declare class Label {
+    label: string
+    key: string
+}
 
 export default {
     components: {
         NButton, NDropdown
     },
     data() {
+
+        const refugeSettings: RefugeSettings = store.get('refuge_settings', null) as RefugeSettings
+
+        const gameLocationOptions: Label[] = []
+        let gameLocationButtonText = "选择游戏路径"
+
+        if (refugeSettings.gameSettings != null) {
+            gameLocationButtonText = refugeSettings.gameSettings.currentGamePath
+            refugeSettings.gameSettings.otherGamePaths.forEach((path: string) => {
+                gameLocationOptions.push({
+                    label: path,
+                    key: path
+                })
+            })
+        } else {
+            console.log("refuge_settings is null")
+        }
+
+        gameLocationOptions.push(
+            {
+                label: "选择游戏路径",
+                key: "choose_game_path"
+            }
+        )
         return {
             startGameBottom: 'primary',
             installLocalizationButton: 'info',
-            options: [
-                        {
-                        label: "选择新的游戏目录",
-                        key: "select_new_location",
-                        disabled: false
-                        }
-                    ],
+            options: gameLocationOptions,
+            gameLocationButtonText: gameLocationButtonText,
             users: []
-            
         }
     },
     methods: {
         handleSelect(value: string) {
-            console.log(value)
-            window.CirnoApi.getAnnouncement().then((res: Announcement) => {
-                console.log(res)
-            })
-            window.chooseFile({name: "111", extensions: [".txt"]}).then((res: string[] | undefined) => {
+            if (value === "choose_game_path") {
+                window.chooseFile({name: "111", extensions: []}).then((res: string[] | undefined) => {
                 if (res != undefined) {
-                    console.log(res)
+                    const gamePath = path.dirname(path.dirname(res[0]))
+                    const refugeSettings = getRefugeSettings()
+                    if (refugeSettings.gameSettings != null) {
+                        refugeSettings.gameSettings.currentGamePath = gamePath
+                    }
+                    refugeSettings.gameSettings?.otherGamePaths.unshift(gamePath)
+                    setRefugeSettings(refugeSettings)
+                    this.gameLocationButtonText = gamePath
+                    this.options.unshift({
+                        label: gamePath,
+                        key: gamePath
+                    })
                 }
             })
+            } else {
+                const refugeSettings = getRefugeSettings()
+                if (refugeSettings.gameSettings != null) {
+                    refugeSettings.gameSettings.currentGamePath = value
+                }
+                setRefugeSettings(refugeSettings)
+                this.gameLocationButtonText = value
+            }
         },
     }
 }
@@ -41,10 +86,10 @@ export default {
     <div class="localization-container">
         <h1>Here is LocalizationPage</h1>
         <n-dropdown :options="options" @select="handleSelect">
-            <n-button id="game-location-selector">D:\Programs\RSI\StarCitizen\LIVE</n-button>
+            <n-button id="game-location-selector">{{ gameLocationButtonText }}</n-button>
         </n-dropdown>
         <div id="buttons-container">
-            <n-button id="install-localization-button" size="large" :type="installLocalizationButton">安装汉化</n-button>
+            <n-button id="install-localization-button" size="large" :type="(installLocalizationButton)">安装汉化</n-button>
             <n-button id="start-game-button" size="large" :type="startGameBottom" :disabled="true">启动游戏</n-button>
         </div>
         

@@ -2,6 +2,9 @@ import { dialog } from "electron";
 import { AdmZip } from "adm-zip";
 import fs from "fs";
 import { LocalizationSettings } from "../settings/refuge_settings";
+import Store from "electron-store";
+
+const store = new Store()
 
 export class Filter {
     name: string;
@@ -45,4 +48,8 @@ export const readLocalizationInfo = (filePath: string): LocalizationSettings => 
 
 export const writeLocalizationInfo = (filePath: string, json: LocalizationSettings) => {
     writeJsonFile(filePath, json)
+}
+
+export function loadLocalizationInfo(path: string): LocalizationSettings {
+    return readLocalizationInfo(path)
 }
