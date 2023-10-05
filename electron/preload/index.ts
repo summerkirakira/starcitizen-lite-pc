@@ -1,7 +1,7 @@
 import { db } from "../database/DatabaseEntities"
 import { CirnoApi } from "../network/CirnoAPIService"
 import { ipcRenderer } from "electron"
-import { chooseFile } from "../uitils/files"
+import { Filter, chooseFile } from "../uitils/files"
 import { initialize } from "./initialize"
 
 
@@ -102,6 +102,6 @@ window.CirnoApi = new CirnoApi()
 
 window.database = db
 
-window.chooseFile = () => ipcRenderer.invoke('choose-file')
+window.chooseFile = (filter: Filter) => ipcRenderer.invoke('choose-file', filter)
 
 initialize()

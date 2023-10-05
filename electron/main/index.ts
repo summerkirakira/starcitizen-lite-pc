@@ -80,7 +80,9 @@ app.whenReady().then(() => {
   createWindow()
   const ElectronStore = require('electron-store');
   ElectronStore.initRenderer();
-  ipcMain.handle('choose-file', chooseFile)
+  ipcMain.handle('choose-file', (event, filter) => {
+    return chooseFile(filter);
+  })
 })
 
 app.on('window-all-closed', () => {

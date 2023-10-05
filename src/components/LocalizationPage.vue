@@ -1,8 +1,5 @@
 <script lang="ts">
 import { NButton, NDropdown } from 'naive-ui'
-import { useObservable } from '@vueuse/rxjs'
-import { liveQuery } from 'dexie'
-import { Options } from '@vicons/ionicons5'
 import { Announcement } from '../../electron/network/CirnoAPIProperty'
 
 export default {
@@ -30,16 +27,9 @@ export default {
             window.CirnoApi.getAnnouncement().then((res: Announcement) => {
                 console.log(res)
             })
-            window.chooseFile().then((res: string[] | undefined) => {
+            window.chooseFile({name: "111", extensions: [".txt"]}).then((res: string[] | undefined) => {
                 if (res != undefined) {
                     console.log(res)
-                    this.options = [
-                        {
-                            label: res[0],
-                            key: "select_new_location",
-                            disabled: false 
-                        }
-                    ]
                 }
             })
         },
@@ -55,7 +45,7 @@ export default {
         </n-dropdown>
         <div id="buttons-container">
             <n-button id="install-localization-button" size="large" :type="installLocalizationButton">安装汉化</n-button>
-            <n-button id="start-game-button" size="large" :type="startGameBottom">启动游戏</n-button>
+            <n-button id="start-game-button" size="large" :type="startGameBottom" :disabled="true">启动游戏</n-button>
         </div>
         
     </div>
