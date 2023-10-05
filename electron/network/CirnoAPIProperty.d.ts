@@ -16,3 +16,13 @@ export interface Version {
     credit: number;
     totalVipTime: number;
 }
+
+export interface LocalizationInfo {
+    path: string;
+    localization_id: string;
+    localization_version: number;
+    localization_url: string;
+    localization_font_url: string;
+    localization_font_version: number;
+}
+

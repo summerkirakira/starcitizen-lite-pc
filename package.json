@@ -39,9 +39,11 @@
   "dependencies": {
     "@vueuse/core": "^10.4.1",
     "@vueuse/rxjs": "^10.4.1",
+    "adm-zip": "^0.5.10",
     "axios": "^1.5.1",
     "dexie": "^3.2.4",
     "electron-store": "^8.1.0",
+    "uuid": "^9.0.1",
     "vue-router": "^4.2.5"
   }
 }

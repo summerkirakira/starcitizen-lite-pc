@@ -3,6 +3,7 @@ import { NButton, NDropdown } from 'naive-ui'
 import { useObservable } from '@vueuse/rxjs'
 import { liveQuery } from 'dexie'
 import { Options } from '@vicons/ionicons5'
+import { Announcement } from '../../electron/network/CirnoAPIProperty'
 
 export default {
     components: {
@@ -26,9 +27,9 @@ export default {
     methods: {
         handleSelect(value: string) {
             console.log(value)
-            // window.CirnoApi.getAnnouncement().then((res: Announcement) => {
-            //     console.log(res)
-            // })
+            window.CirnoApi.getAnnouncement().then((res: Announcement) => {
+                console.log(res)
+            })
             window.chooseFile().then((res: string[] | undefined) => {
                 if (res != undefined) {
                     console.log(res)

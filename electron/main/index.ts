@@ -78,6 +78,8 @@ async function createWindow() {
 
 app.whenReady().then(() => { 
   createWindow()
+  const ElectronStore = require('electron-store');
+  ElectronStore.initRenderer();
   ipcMain.handle('choose-file', chooseFile)
 })
 

@@ -2,6 +2,7 @@ import { db } from "../database/DatabaseEntities"
 import { CirnoApi } from "../network/CirnoAPIService"
 import { ipcRenderer } from "electron"
 import { chooseFile } from "../uitils/files"
+import { initialize } from "./initialize"
 
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -102,3 +103,5 @@ window.CirnoApi = new CirnoApi()
 window.database = db
 
 window.chooseFile = () => ipcRenderer.invoke('choose-file')
+
+initialize()
