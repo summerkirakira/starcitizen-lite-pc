@@ -5,6 +5,7 @@ import { RefugeSettings } from '../../electron/settings/refuge_settings'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import Store  from 'electron-store'
 import path from 'path'
+import { CirnoApi } from '../../electron/network/CirnoAPIService'
 
 const store = new Store()
 
@@ -65,7 +66,7 @@ export default {
                     this.gameLocationButtonText = gamePath
                     this.options.unshift({
                         label: gamePath,
-                        key: gamePath
+                        key: res[0]
                     })
                 }
             })
@@ -78,6 +79,17 @@ export default {
                 this.gameLocationButtonText = value
             }
         },
+        handleLocalizationClick() {
+            const refugeSettings = getRefugeSettings()
+            if (refugeSettings.gameSettings == null) {
+                return
+            }
+            window.fileManager.getZipFile("https://github.com/summerkirakira/Starcitizen-lite/releases/download/v2.2.0/refuge.2.2.0.apk", refugeSettings.gameSettings.currentGamePath).then(()=>{
+                console.log("download success")
+            }).catch((err: any) => {
+                console.log(err)
+            })
+        }
     }
 }
 </script>
@@ -85,11 +97,16 @@ export default {
 <template>
     <div class="localization-container">
         <h1>Here is LocalizationPage</h1>
-        <n-dropdown :options="options" @select="handleSelect">
-            <n-button id="game-location-selector">{{ gameLocationButtonText }}</n-button>
+
+        <div id="game-location-selector">
+            <n-dropdown :options="options" @select="handleSelect">
+            <n-button>{{ gameLocationButtonText }}</n-button>
         </n-dropdown>
+        </div>
         <div id="buttons-container">
-            <n-button id="install-localization-button" size="large" :type="(installLocalizationButton)">安装汉化</n-button>
+            <n-popselect v-model:value="value" :options="options" trigger="click">
+                <n-button id="install-localization-button" size="large" :type="installLocalizationButton" @click="handleLocalizationClick">安装汉化</n-button>
+            </n-popselect>
             <n-button id="start-game-button" size="large" :type="startGameBottom" :disabled="true">启动游戏</n-button>
         </div>
         

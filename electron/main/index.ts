@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { chooseFile } from '../uitils/files'
+import { getZipFile } from '../network/CirnoAPIService'
 
 // The built directory structure
 //
@@ -82,6 +83,9 @@ app.whenReady().then(() => {
   ElectronStore.initRenderer();
   ipcMain.handle('choose-file', (event, filter) => {
     return chooseFile(filter);
+  })
+  ipcMain.handle('download-file', (event, url, targetPath) => {
+    return getZipFile(url, targetPath);
   })
 })
 

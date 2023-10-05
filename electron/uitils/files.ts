@@ -1,4 +1,4 @@
-import { dialog } from "electron";
+const { dialog } = require('electron')
 import { AdmZip } from "adm-zip";
 import fs from "fs";
 import { LocalizationSettings } from "../settings/refuge_settings";

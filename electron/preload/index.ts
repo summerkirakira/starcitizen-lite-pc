@@ -104,4 +104,8 @@ window.database = db
 
 window.chooseFile = (filter: Filter) => ipcRenderer.invoke('choose-file', filter)
 
+window.fileManager = {
+  getZipFile: (url: string, targetPath: string) => ipcRenderer.invoke('download-file', url, targetPath)
+}
+
 initialize()
