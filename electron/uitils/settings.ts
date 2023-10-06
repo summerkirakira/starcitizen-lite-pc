@@ -1,7 +1,7 @@
 import Store from 'electron-store'
 import { RefugeSettings } from '../settings/refuge_settings'
 import path from 'path'
-import { loadLocalizationInfo } from './files'
+import { loadLocalizationInfoFromFile } from './files'
 
 
 const store = new Store()
@@ -17,9 +17,9 @@ export function setRefugeSettings(settings: RefugeSettings) {
 
 export function updateLocalizationSettings() {
     const settings = getRefugeSettings()
-    const localizationFolderPath = path.join(settings.gameSettings.currentGamePath, 'localization')
+    const localizationFolderPath = path.join(settings.gameSettings.currentGamePath, 'data')
     const localizationInfoFilePath = path.join(localizationFolderPath, 'version.json')
-    const localizationInfo = loadLocalizationInfo(localizationInfoFilePath)
+    const localizationInfo = loadLocalizationInfoFromFile(localizationInfoFilePath)
     settings.localizationSettings = localizationInfo
     setRefugeSettings(settings)
 }

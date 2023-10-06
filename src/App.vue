@@ -2,7 +2,7 @@
 import LeftMenu from './components/LeftMenu.vue'
 import MainActivity from './components/MainActivity.vue'
 
-import { NConfigProvider, GlobalThemeOverrides } from 'naive-ui'
+import { NConfigProvider, GlobalThemeOverrides, NNotificationProvider } from 'naive-ui'
 
 const themeOverrides: GlobalThemeOverrides = {
    common: {
@@ -18,12 +18,14 @@ function handleValue (value: string) {
 
 <template>
   <n-config-provider :theme-overrides="themeOverrides" class="app-container">
-    <div class="main-body">
-      <LeftMenu class="left-column" />
-      <div class="right-column">
-        <main-activity />
+    <n-notification-provider>
+      <div class="main-body">
+        <LeftMenu class="left-column" />
+        <div class="right-column">
+          <main-activity />
+        </div>
       </div>
-    </div>
+    </n-notification-provider>
   </n-config-provider>
 </template>
 

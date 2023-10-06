@@ -17,6 +17,11 @@ export interface Version {
     totalVipTime: number;
 }
 
+export interface FileSturcture {
+    name: string;
+    md5: string;
+}
+
 export interface LocalizationInfo {
     path: string;
     localization_id: string;
@@ -24,5 +29,17 @@ export interface LocalizationInfo {
     localization_url: string;
     localization_font_url: string;
     localization_font_version: number;
+    hashes: FileSturcture[];
+}
+
+export interface LocalizationInfoPostBody {
+    localization_id: string | null;
+}
+
+
+export interface AvailiableLocalization {
+    id: string;
+    name: string;
+    description: string;
 }
 

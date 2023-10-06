@@ -2,6 +2,7 @@
 import LocalizationPage from './LocalizationPage.vue'
 import SettingsPage from './SettingsPage.vue'
 import HangarPage from './HangarPage.vue'
+import { NNotificationProvider } from 'naive-ui'
 
 
 const routes = {
@@ -26,6 +27,7 @@ export default {
 		})
   }
 }
+
 </script>
 <template>
     <div class="container">

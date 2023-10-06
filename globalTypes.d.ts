@@ -8,8 +8,9 @@ declare global {
       CirnoApi: CirnoApi
       database: CirnoDatabase
       chooseFile: (filter: Filter) => Promise<string[]>
+      appPath: string
       fileManager: {
-        getZipFile: (url: string, targetPath: string) => Promise<void>
+        getZipFile: (url: string, targetPath: string) => Promise<string>
       }
     }
 }

@@ -1,8 +1,10 @@
+import path from 'path';
 import { db } from "../database/DatabaseEntities"
 import { CirnoApi } from "../network/CirnoAPIService"
 import { ipcRenderer } from "electron"
 import { Filter, chooseFile } from "../uitils/files"
 import { initialize } from "./initialize"
+import fs from 'fs'
 
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -105,7 +107,18 @@ window.database = db
 window.chooseFile = (filter: Filter) => ipcRenderer.invoke('choose-file', filter)
 
 window.fileManager = {
-  getZipFile: (url: string, targetPath: string) => ipcRenderer.invoke('download-file', url, targetPath)
+  getZipFile: (url: string, targetPath: string): Promise<string> => ipcRenderer.invoke('download-file', url, targetPath)
 }
+
+ipcRenderer.invoke('get-app-path').then((appPath: string) => {
+  const refugePath = path.join(appPath, 'refuge-pc')
+  if(!fs.existsSync(refugePath)) {
+    fs.mkdirSync(refugePath)
+  }
+  if(!fs.existsSync(path.join(refugePath, 'cache'))) {
+    fs.mkdirSync(path.join(refugePath, 'cache'))
+  }
+  window.appPath = refugePath
+})
 
 initialize()

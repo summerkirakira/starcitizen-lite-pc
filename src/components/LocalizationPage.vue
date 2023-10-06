@@ -1,11 +1,13 @@
 <script lang="ts">
-import { NButton, NDropdown } from 'naive-ui'
+import { NButton, NDropdown, useNotification } from 'naive-ui'
 import { Announcement } from '../../electron/network/CirnoAPIProperty'
 import { RefugeSettings } from '../../electron/settings/refuge_settings'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import Store  from 'electron-store'
 import path from 'path'
 import { CirnoApi } from '../../electron/network/CirnoAPIService'
+import { getCachePath } from '../../electron/uitils/files'
+import fs from 'fs'
 
 const store = new Store()
 
@@ -18,15 +20,24 @@ export default {
     components: {
         NButton, NDropdown
     },
+    setup() {
+        const notification = useNotification()
+        return {
+            notification
+        }
+    },
     data() {
 
         const refugeSettings: RefugeSettings = store.get('refuge_settings', null) as RefugeSettings
 
         const gameLocationOptions: Label[] = []
         let gameLocationButtonText = "选择游戏路径"
+        console.log(refugeSettings)
 
         if (refugeSettings.gameSettings != null) {
-            gameLocationButtonText = refugeSettings.gameSettings.currentGamePath
+            if (refugeSettings.gameSettings.currentGamePath != null) {
+                gameLocationButtonText = refugeSettings.gameSettings.currentGamePath
+            }
             refugeSettings.gameSettings.otherGamePaths.forEach((path: string) => {
                 gameLocationOptions.push({
                     label: path,
@@ -54,7 +65,7 @@ export default {
     methods: {
         handleSelect(value: string) {
             if (value === "choose_game_path") {
-                window.chooseFile({name: "111", extensions: []}).then((res: string[] | undefined) => {
+                window.chooseFile({name: "StarCitizen", extensions: ['exe']}).then((res: string[] | undefined) => {
                 if (res != undefined) {
                     const gamePath = path.dirname(path.dirname(res[0]))
                     const refugeSettings = getRefugeSettings()
@@ -71,6 +82,28 @@ export default {
                 }
             })
             } else {
+                if (fs.existsSync(path.join(path.join(value, 'Bin64'), 'StarCitizen.exe')) == false) {
+                    this.options = this.options.filter((item: Label) => {
+                        return item.key != value
+                    })
+                    this.gameLocationButtonText = "选择游戏路径"
+                    this.notification.error({
+                        title: '错误',
+                        content: '游戏路径不存在, 已自动移除该路径'
+                    })
+                    const refugeSettings = getRefugeSettings()
+                    if (refugeSettings.gameSettings != null) {
+                        refugeSettings.gameSettings.otherGamePaths = this.options
+                        .filter((item: Label) => {
+                            return item.key != "choose_game_path"
+                        })
+                        .map((item: Label) => {
+                            return item.key
+                        })
+                        setRefugeSettings(refugeSettings)
+                    }
+                    return
+                }
                 const refugeSettings = getRefugeSettings()
                 if (refugeSettings.gameSettings != null) {
                     refugeSettings.gameSettings.currentGamePath = value
@@ -84,8 +117,8 @@ export default {
             if (refugeSettings.gameSettings == null) {
                 return
             }
-            window.fileManager.getZipFile("https://github.com/summerkirakira/Starcitizen-lite/releases/download/v2.2.0/refuge.2.2.0.apk", refugeSettings.gameSettings.currentGamePath).then(()=>{
-                console.log("download success")
+            window.fileManager.getZipFile("https://github.com/summerkirakira/Starcitizen-lite/releases/download/v2.1.4/refuge.2.1.4.apk", getCachePath()).then((downloadPath)=>{
+                console.log(downloadPath)
             }).catch((err: any) => {
                 console.log(err)
             })

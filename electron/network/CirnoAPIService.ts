@@ -1,14 +1,20 @@
-import { Announcement } from './CirnoAPIProperty.d';
+import { Announcement, LocalizationInfo, LocalizationInfoPostBody, AvailiableLocalization } from './CirnoAPIProperty.d';
 import axios from "axios"
 import Store from 'electron-store'
 import fs from "fs"
 import path from "path"
+import crypto from "crypto"
 
 
 const BASE_URL = 'http://127.0.0.1:6088/'
 
 const store = new Store()
 
+function generateMD5(inputString: string): string {
+    const md5Hash = crypto.createHash('md5');
+    md5Hash.update(inputString);
+    return md5Hash.digest('hex');
+  }
 
 async function fetchCirnoAPIPost<T>(url: string, postData: any): Promise<T> {
     const cirno_token = store.get('uuid', null)
@@ -37,7 +43,7 @@ async function fetchCirnoAPIGet<T>(url: string): Promise<T> {
 }
 
 
-export async function getZipFile(url: string, targetPath: string): Promise<void> {
+export async function getZipFile(url: string, targetPath: string): Promise<string> {
     const cirno_token = store.get('uuid', null)
     if (!cirno_token) {
         throw new Error('uuid not found')
@@ -46,7 +52,11 @@ export async function getZipFile(url: string, targetPath: string): Promise<void>
         // "User-Agent": "StarCitizenLite/PC",
         "cirno-token": cirno_token.toString(),
     }
-    const writer = fs.createWriteStream(path.join(targetPath, 'temp.zip'))
+    const downloadPath = path.join(targetPath, generateMD5(url))
+    if (fs.existsSync(downloadPath)) {
+        return downloadPath
+    }
+    const writer = fs.createWriteStream(downloadPath)
     const response = await axios({
         url,
         method: 'GET',
@@ -55,7 +65,7 @@ export async function getZipFile(url: string, targetPath: string): Promise<void>
     })
     response.data.pipe(writer)
     return new Promise((resolve, reject) => {
-        writer.on('finish', resolve)
+        writer.on('finish', () => resolve(downloadPath))
         writer.on('error', reject)
     })
 }
@@ -70,7 +80,15 @@ export class CirnoApi {
         return fetchCirnoAPIGet<Announcement>('announcement/latest')
     }
 
-    async downloadGameZip(url: string, targetPath: string): Promise<void> {
+    async downloadGameZip(url: string, targetPath: string): Promise<string> {
         return getZipFile(url, path.join(targetPath, 'temp.zip'))
+    }
+
+    async getLocalizationInfo(localizationInfoPostBody: LocalizationInfoPostBody): Promise<LocalizationInfo> {
+        return fetchCirnoAPIPost<LocalizationInfo>('localization/info', localizationInfoPostBody)
+    }
+
+    async getAvailiableLocalization(): Promise<AvailiableLocalization[]> {
+        return fetchCirnoAPIGet<AvailiableLocalization[]>('localization/list')
     }
 }

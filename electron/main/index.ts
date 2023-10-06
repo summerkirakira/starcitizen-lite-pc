@@ -84,8 +84,11 @@ app.whenReady().then(() => {
   ipcMain.handle('choose-file', (event, filter) => {
     return chooseFile(filter);
   })
-  ipcMain.handle('download-file', (event, url, targetPath) => {
+  ipcMain.handle('download-file', (event, url, targetPath): Promise<string> => {
     return getZipFile(url, targetPath);
+  })
+  ipcMain.handle('get-app-path', (event) => {
+    return app.getPath('appData');
   })
 })
 
