@@ -31,10 +31,10 @@ export default {
 </script>
 <template>
     <div class="container">
-        <a href="#/">Localization Page</a> |
+        <!-- <a href="#/localization">Localization Page</a> |
         <a href="#/settings">Settings Page</a> |
-        <a href="#/hangar">Hangar Page</a>
-        <component :is="currentView" />
+        <a href="#/hangar">Hangar Page</a> -->
+        <component :is="currentView" style="width: 100%; height: 100%;" />
     </div>
 </template>
 

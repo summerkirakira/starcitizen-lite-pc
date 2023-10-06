@@ -81,7 +81,7 @@ export class CirnoApi {
     }
 
     async downloadGameZip(url: string, targetPath: string): Promise<string> {
-        return getZipFile(url, path.join(targetPath, 'temp.zip'))
+        return getZipFile(url, targetPath)
     }
 
     async getLocalizationInfo(localizationInfoPostBody: LocalizationInfoPostBody): Promise<LocalizationInfo> {

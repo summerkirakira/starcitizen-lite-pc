@@ -45,6 +45,7 @@ async function fetchLocalizationInfo() {
     const refugeSettings = getRefugeSettings()
     if(refugeSettings.gameSettings.currentGamePath != null) {
         updateLocalizationSettings()
+        console.log(refugeSettings)
     }
     if (!refugeSettings.localizationSettings) {
         

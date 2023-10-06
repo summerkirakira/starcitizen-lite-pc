@@ -44,8 +44,10 @@ const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    title: '星河避难所',
     icon: join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload,
       nodeIntegration: true,
@@ -74,6 +76,8 @@ async function createWindow() {
 
 
   win.setMinimumSize(1200, 800)
+  win.setMenu(null)
+
 
 }
 

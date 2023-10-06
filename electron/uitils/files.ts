@@ -1,13 +1,14 @@
 
 const { dialog } = require('electron')
-import { AdmZip } from "adm-zip";
+const AdmZip = require("adm-zip")
 import fs from "fs";
 import { LocalizationSettings } from "../settings/refuge_settings";
 import Store from "electron-store";
 import path from "path";
-import { getRefugeSettings } from "./settings";
+import { getRefugeSettings, setRefugeSettings } from "./settings";
 import { FileSturcture } from "../network/CirnoAPIProperty";
 import CryptoJS from "crypto-js"
+import { set } from "@vueuse/core";
 
 const store = new Store()
 
@@ -57,6 +58,7 @@ export const readLocalizationInfo = (filePath: string): LocalizationSettings => 
 
 export const writeLocalizationInfo = () => {
     const refugeSettings = getRefugeSettings()
+    console.log(refugeSettings)
     if (refugeSettings.gameSettings.currentGamePath == null) {
         throw new Error('No game path found')
     }
@@ -95,5 +97,59 @@ export function validateFolder(folder_path: string, files: FileSturcture[]): str
             missingFiles.push(file.name)
         }
     }
-    return []
+    return missingFiles
+}
+
+
+export async function installLocalization(localizationId: string | null): Promise<void> {
+    const localizationInfo = await window.CirnoApi.getLocalizationInfo({
+        localization_id: localizationId
+    })
+    // console.log(localizationInfo)
+    const refugeSettings = getRefugeSettings()
+    if (refugeSettings.gameSettings.currentGamePath == null) {
+        throw new Error('No game path found')
+    }
+    if (!fs.existsSync(refugeSettings.gameSettings.currentGamePath)) {
+        throw new Error('Localization already installed')
+    }
+    const localizationPath = path.join(refugeSettings.gameSettings.currentGamePath, localizationInfo.path)
+    fs.mkdirSync(localizationPath, { recursive: true })
+    const missing_files = validateFolder(localizationPath, localizationInfo.hashes)
+    let downloadGlobalFlag = false
+    let downloadFontFlag = false
+    if (missing_files.length == 0) {
+        return
+    }
+    for (const file of missing_files) {
+        if (file.startsWith('global')) {
+            downloadGlobalFlag = true
+        } else {
+            downloadFontFlag = true
+        }
+    }
+    if (downloadGlobalFlag) {
+        const zipPath = await window.CirnoApi.downloadGameZip(localizationInfo.localization_url, getCachePath())
+        console.log("find global.ini missing")
+        extractZipToPath(zipPath, localizationPath)
+    }
+    if (downloadFontFlag) {
+        const zipPath = await window.CirnoApi.downloadGameZip(localizationInfo.localization_font_url, getCachePath())
+        console.log("find font missing")
+        extractZipToPath(zipPath, localizationPath)
+    }
+    const validFiles = validateFolder(localizationPath, localizationInfo.hashes)
+    if (validFiles.length != 0) {
+        throw new Error('Failed to install localization')
+    }
+    refugeSettings.localizationSettings = {
+        localizaitonId: localizationInfo.localization_id,
+        version: localizationInfo.localization_version,
+        fontVersion: localizationInfo.localization_font_version,
+        latestVersion: localizationInfo.localization_version,
+        latestFontVersion: localizationInfo.localization_font_version,
+        hashes: localizationInfo.hashes
+    }
+    setRefugeSettings(refugeSettings)
+    writeLocalizationInfo()
 }

@@ -1,17 +1,12 @@
 {
-  "name": "electron-vue-vite",
+  "name": "starcitizenlite-pc",
   "version": "2.0.0",
   "main": "dist-electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "",
+  "author": "Summerkirakira <summerkirakira@gmail.com>",
   "license": "MIT",
   "private": true,
   "keywords": [
-    "electron",
-    "rollup",
-    "vite",
-    "vue3",
-    "vue"
   ],
   "debug": {
     "env": {
@@ -44,6 +39,7 @@
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.4",
     "electron-store": "^8.1.0",
+    "unzipper": "^0.10.14",
     "uuid": "^9.0.1",
     "vue-router": "^4.2.5"
   }

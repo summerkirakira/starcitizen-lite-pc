@@ -6,8 +6,9 @@ import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/sett
 import Store  from 'electron-store'
 import path from 'path'
 import { CirnoApi } from '../../electron/network/CirnoAPIService'
-import { getCachePath } from '../../electron/uitils/files'
+import { getCachePath, installLocalization } from '../../electron/uitils/files'
 import fs from 'fs'
+import { writeLocalizationInfo } from '../../electron/uitils/files'
 
 const store = new Store()
 
@@ -68,6 +69,11 @@ export default {
                 window.chooseFile({name: "StarCitizen", extensions: ['exe']}).then((res: string[] | undefined) => {
                 if (res != undefined) {
                     const gamePath = path.dirname(path.dirname(res[0]))
+                    for (const item of this.options) {
+                        if (item.key === gamePath) {
+                            return
+                        }
+                    }
                     const refugeSettings = getRefugeSettings()
                     if (refugeSettings.gameSettings != null) {
                         refugeSettings.gameSettings.currentGamePath = gamePath
@@ -117,10 +123,24 @@ export default {
             if (refugeSettings.gameSettings == null) {
                 return
             }
-            window.fileManager.getZipFile("https://github.com/summerkirakira/Starcitizen-lite/releases/download/v2.1.4/refuge.2.1.4.apk", getCachePath()).then((downloadPath)=>{
-                console.log(downloadPath)
-            }).catch((err: any) => {
+            // window.fileManager.getZipFile("https://github.com/summerkirakira/Starcitizen-lite/releases/download/v2.1.4/refuge.2.1.4.apk", getCachePath()).then((downloadPath)=>{
+            //     console.log(downloadPath)
+            // }).catch((err: any) => {
+            //     console.log(err)
+            // })
+            installLocalization(null).then(()=>
+                {
+                    this.notification.success({
+                        title: '成功',
+                        content: '汉化安装成功'
+                    })
+                }
+            ).catch((err: any) => {
                 console.log(err)
+                this.notification.error({
+                    title: '错误',
+                    content: '汉化安装失败'
+                })
             })
         }
     }
@@ -129,7 +149,7 @@ export default {
 
 <template>
     <div class="localization-container">
-        <h1>Here is LocalizationPage</h1>
+        <iframe id="localization-webview" src="https://image.biaoju.site/star-refuge/docs/install-localization/"/>
 
         <div id="game-location-selector">
             <n-dropdown :options="options" @select="handleSelect">
@@ -150,7 +170,7 @@ export default {
     #localization-container {
         width: 100%;
         height: 100%;
-        position: relative;
+        position: absolute;
     }
     #buttons-container {
         right: 50px;
@@ -161,8 +181,14 @@ export default {
         margin-right: 30px;
     }
     #game-location-selector {
-        left: 350px;
+        left: 200px;
         bottom: 50px;
         position: absolute;
+    }
+    #localization-webview {
+        width: 100%;
+        height: calc(100% - 130px);
+        margin-bottom: 200px;
+        border: none; /* 去除iframe边框 */
     }
 </style>

@@ -1,3 +1,5 @@
+import { FileSturcture } from "../network/CirnoAPIProperty";
+
 export class GameSettings {
     currentGamePath: string | null;
     currentGameVersion: string;
@@ -10,6 +12,7 @@ export class LocalizationSettings {
     fontVersion: number;
     latestVersion: number;
     latestFontVersion: number;
+    hashes: FileSturcture[];
 }
 
 export class AvailiableLocalization {

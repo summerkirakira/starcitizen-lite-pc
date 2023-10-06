@@ -100,6 +100,10 @@ window.onmessage = (ev) => {
 
 setTimeout(removeLoading, 4999)
 
+
+// ----------------------------------------------------------------------
+
+
 window.CirnoApi = new CirnoApi()
 
 window.database = db

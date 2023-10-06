@@ -10,9 +10,6 @@ const themeOverrides: GlobalThemeOverrides = {
    }
 }
 
-function handleValue (value: string) {
-  console.log(value)
-}
 
 </script>
 
@@ -45,13 +42,13 @@ function handleValue (value: string) {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: 350px auto;
+  grid-template-columns: 200px auto;
 }
 
 .left-colomn {
   height: 100%;
   background-color: #f0f0f0;
-  width: 350px;
+  width: 200px;
   float: left;
 }
 
