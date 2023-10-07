@@ -1,14 +1,13 @@
 <script lang="ts">
 import { NButton, NDropdown, useNotification } from 'naive-ui'
-import { Announcement } from '../../electron/network/CirnoAPIProperty'
 import { RefugeSettings } from '../../electron/settings/refuge_settings'
-import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import Store  from 'electron-store'
 import path from 'path'
-import { CirnoApi } from '../../electron/network/CirnoAPIService'
-import { getCachePath, installLocalization } from '../../electron/uitils/files'
+import { installLocalization, validateFolder } from '../../electron/uitils/files'
+import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import fs from 'fs'
-import { writeLocalizationInfo } from '../../electron/uitils/files'
+import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
+import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
 
 const store = new Store()
 
@@ -24,7 +23,8 @@ export default {
     setup() {
         const notification = useNotification()
         return {
-            notification
+            notification,
+            value: ""
         }
     },
     data() {
@@ -34,6 +34,9 @@ export default {
         const gameLocationOptions: Label[] = []
         let gameLocationButtonText = "选择游戏路径"
         console.log(refugeSettings)
+        let isInstalled = false
+        let isNeedUpdate = false
+        let installButtonText = "安装汉化"
 
         if (refugeSettings.gameSettings != null) {
             if (refugeSettings.gameSettings.currentGamePath != null) {
@@ -60,6 +63,9 @@ export default {
             installLocalizationButton: 'info',
             options: gameLocationOptions,
             gameLocationButtonText: gameLocationButtonText,
+            isInstalled: isInstalled,
+            isNeedUpdate: isNeedUpdate,
+            installButtonText: installButtonText,
             users: []
         }
     },
@@ -83,7 +89,7 @@ export default {
                     this.gameLocationButtonText = gamePath
                     this.options.unshift({
                         label: gamePath,
-                        key: res[0]
+                        key: gamePath
                     })
                 }
             })
@@ -117,32 +123,109 @@ export default {
                 setRefugeSettings(refugeSettings)
                 this.gameLocationButtonText = value
             }
+            this.updateLocalizationInfo()
+            this.checkUpdate()
         },
         handleLocalizationClick() {
             const refugeSettings = getRefugeSettings()
             if (refugeSettings.gameSettings == null) {
                 return
             }
-            // window.fileManager.getZipFile("https://github.com/summerkirakira/Starcitizen-lite/releases/download/v2.1.4/refuge.2.1.4.apk", getCachePath()).then((downloadPath)=>{
-            //     console.log(downloadPath)
-            // }).catch((err: any) => {
-            //     console.log(err)
-            // })
-            installLocalization(null).then(()=>
-                {
+            if (this.isInstalled && !this.isNeedUpdate) {
+                uninstallLocalization().then(() => {
                     this.notification.success({
                         title: '成功',
-                        content: '汉化安装成功'
+                        content: '汉化卸载成功'
                     })
-                }
-            ).catch((err: any) => {
-                console.log(err)
-                this.notification.error({
-                    title: '错误',
-                    content: '汉化安装失败'
+                    this.isInstalled = false
+                    this.installButtonText = "安装汉化"
+                    updateLocalizationSettings()
+                }).catch((err: any) => {
+                    console.log(err)
+                    this.notification.error({
+                        title: '错误',
+                        content: '汉化卸载失败'
+                    })
                 })
+            } else {
+                installLocalization(null).then(()=>
+                        {
+                            this.notification.success({
+                                title: '成功',
+                                content: '汉化安装成功'
+                            })
+                            this.isInstalled = true
+                            this.installButtonText = "卸载汉化"
+                        }
+                    ).catch((err: any) => {
+                        console.log(err)
+                        this.notification.error({
+                            title: '错误',
+                            content: '汉化安装失败'
+                        })
+                    })
+            }
+            
+        },
+        updateLocalizationInfo() {
+            let refugeSettings = getRefugeSettings()
+            if (refugeSettings.gameSettings == null) {
+                return
+            }
+            if (refugeSettings.gameSettings.currentGamePath == null) {
+                return
+            }
+            updateLocalizationSettings()
+            refugeSettings = getRefugeSettings()
+            if (refugeSettings.localizationSettings != null) {
+                validateFolder(path.join(refugeSettings.gameSettings.currentGamePath, refugeSettings.localizationSettings.path), refugeSettings.localizationSettings.hashes).then((missingFiles: string[]) => {
+                    console.log(missingFiles)
+                    if (missingFiles.length == 0) {
+                        this.isInstalled = true
+                        if (!this.isNeedUpdate) {
+                            this.installButtonText = "卸载汉化"
+                        }
+                    } else {
+                        this.notification.error({
+                            title: '错误',
+                            content: '汉化文件缺失, 请重新安装汉化'
+                        })
+                        this.isInstalled = false
+                        this.installButtonText = "安装汉化"
+                    }
+                }).catch((err: any) => {
+                    console.log(err)
+                })
+                
+            } else {
+                this.isInstalled = false
+                this.installButtonText = "安装汉化"
+            }
+        },
+        checkUpdate() {
+            const refugeSettings = getRefugeSettings()
+            if (refugeSettings.localizationSettings == null) {
+                return
+            }
+            window.CirnoApi.getLocalizationInfo({
+                localization_id: refugeSettings.localizationSettings.localizaitonId
+            }).then((localizationInfo: LocalizationInfo) => {
+                if (localizationInfo.localization_version > refugeSettings.localizationSettings.version) {
+                    this.notification.info({
+                        title: '提示',
+                        content: '汉化有更新, 请更新汉化'
+                    })
+                    this.isNeedUpdate = true
+                    this.installButtonText = "更新汉化"
+                }
+            }).catch((err: any) => {
+                console.log(err)
             })
         }
+    },
+    mounted() {
+        this.updateLocalizationInfo()
+        this.checkUpdate()
     }
 }
 </script>
@@ -158,9 +241,9 @@ export default {
         </div>
         <div id="buttons-container">
             <n-popselect v-model:value="value" :options="options" trigger="click">
-                <n-button id="install-localization-button" size="large" :type="installLocalizationButton" @click="handleLocalizationClick">安装汉化</n-button>
+                <n-button id="install-localization-button" size="large" type="info" @click="handleLocalizationClick">{{ installButtonText }}</n-button>
             </n-popselect>
-            <n-button id="start-game-button" size="large" :type="startGameBottom" :disabled="true">启动游戏</n-button>
+            <n-button id="start-game-button" size="large" type="primary" :disabled="true">启动游戏</n-button>
         </div>
         
     </div>

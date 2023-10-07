@@ -1,18 +1,14 @@
-
+import { LocalizationSettings } from './../settings/refuge_settings.d';
 const { dialog } = require('electron')
 const AdmZip = require("adm-zip")
 import fs from "fs";
 import { LocalizationSettings } from "../settings/refuge_settings";
-import Store from "electron-store";
 import path from "path";
 import { getRefugeSettings, setRefugeSettings } from "./settings";
 import { FileSturcture } from "../network/CirnoAPIProperty";
-import CryptoJS from "crypto-js"
-import { set } from "@vueuse/core";
+import CryptoJS from "crypto-js";
 
-const store = new Store()
-
-export class Filter {
+declare class Filter {
     name: string;
     extensions: string[];
 }
@@ -77,14 +73,14 @@ export function loadLocalizationInfoFromFile(path: string): LocalizationSettings
     return readLocalizationInfo(path)
 }
 
-function calculateFileHash(filePath) {
-    const data = fs.readFileSync(filePath);
+async function calculateFileHash(filePath): Promise<string> {
+    const data = await fs.promises.readFile(filePath);
     const hash = CryptoJS.MD5(CryptoJS.lib.WordArray.create(data));
   
     return hash.toString();
   }
 
-export function validateFolder(folder_path: string, files: FileSturcture[]): string[] {
+export async function validateFolder(folder_path: string, files: FileSturcture[]): Promise<string[]> {
     const missingFiles = []
     for (const file of files) {
         const filePath = path.join(folder_path, file.name)
@@ -92,7 +88,7 @@ export function validateFolder(folder_path: string, files: FileSturcture[]): str
             missingFiles.push(file.name)
             continue
         }
-        const fileHash = calculateFileHash(filePath)
+        const fileHash = await calculateFileHash(filePath)
         if (fileHash != file.md5) {
             missingFiles.push(file.name)
         }
@@ -105,7 +101,6 @@ export async function installLocalization(localizationId: string | null): Promis
     const localizationInfo = await window.CirnoApi.getLocalizationInfo({
         localization_id: localizationId
     })
-    // console.log(localizationInfo)
     const refugeSettings = getRefugeSettings()
     if (refugeSettings.gameSettings.currentGamePath == null) {
         throw new Error('No game path found')
@@ -115,10 +110,18 @@ export async function installLocalization(localizationId: string | null): Promis
     }
     const localizationPath = path.join(refugeSettings.gameSettings.currentGamePath, localizationInfo.path)
     fs.mkdirSync(localizationPath, { recursive: true })
-    const missing_files = validateFolder(localizationPath, localizationInfo.hashes)
+    const missing_files = await validateFolder(localizationPath, localizationInfo.hashes)
     let downloadGlobalFlag = false
     let downloadFontFlag = false
     if (missing_files.length == 0) {
+        refugeSettings.localizationSettings.latestVersion = localizationInfo.localization_version
+        refugeSettings.localizationSettings.latestFontVersion = localizationInfo.localization_font_version
+        refugeSettings.localizationSettings.hashes = localizationInfo.hashes
+        refugeSettings.localizationSettings.path = localizationInfo.path
+        refugeSettings.localizationSettings.version = localizationInfo.localization_version
+        refugeSettings.localizationSettings.fontVersion = localizationInfo.localization_font_version
+        setRefugeSettings(refugeSettings)
+        writeLocalizationInfo()
         return
     }
     for (const file of missing_files) {
@@ -138,7 +141,7 @@ export async function installLocalization(localizationId: string | null): Promis
         console.log("find font missing")
         extractZipToPath(zipPath, localizationPath)
     }
-    const validFiles = validateFolder(localizationPath, localizationInfo.hashes)
+    const validFiles = await validateFolder(localizationPath, localizationInfo.hashes)
     if (validFiles.length != 0) {
         throw new Error('Failed to install localization')
     }
@@ -148,8 +151,27 @@ export async function installLocalization(localizationId: string | null): Promis
         fontVersion: localizationInfo.localization_font_version,
         latestVersion: localizationInfo.localization_version,
         latestFontVersion: localizationInfo.localization_font_version,
-        hashes: localizationInfo.hashes
+        hashes: localizationInfo.hashes,
+        path: localizationInfo.path,
     }
     setRefugeSettings(refugeSettings)
     writeLocalizationInfo()
+}
+
+export function updateLocalizationSettings() {
+    const settings = getRefugeSettings()
+    const localizationFolderPath = path.join(settings.gameSettings.currentGamePath, 'data')
+    const localizationInfoFilePath = path.join(localizationFolderPath, 'version.json')
+    const localizationInfo = loadLocalizationInfoFromFile(localizationInfoFilePath)
+    settings.localizationSettings = localizationInfo
+    setRefugeSettings(settings)
+}
+
+export async function uninstallLocalization(): Promise<void> {
+    const refugeSettings = getRefugeSettings()
+    if (refugeSettings.gameSettings.currentGamePath == null) {
+        throw new Error('No game path found')
+    }
+    const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
+    return fs.promises.rmdir(localizationFolderPath, { recursive: true })
 }

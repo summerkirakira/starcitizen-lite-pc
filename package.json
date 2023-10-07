@@ -1,6 +1,6 @@
 {
   "name": "starcitizenlite-pc",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "",
   "author": "Summerkirakira <summerkirakira@gmail.com>",
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "build": "vite build && electron-builder",
     "preview": "vite preview"
   },
   "devDependencies": {

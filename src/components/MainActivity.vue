@@ -5,7 +5,7 @@ import HangarPage from './HangarPage.vue'
 import { NNotificationProvider } from 'naive-ui'
 
 
-const routes = {
+const routes: any = {
   '/': LocalizationPage,
   '/settings': SettingsPage,
   '/hangar': HangarPage

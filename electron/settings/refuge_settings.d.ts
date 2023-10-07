@@ -13,6 +13,7 @@ export class LocalizationSettings {
     latestVersion: number;
     latestFontVersion: number;
     hashes: FileSturcture[];
+    path: string;
 }
 
 export class AvailiableLocalization {
