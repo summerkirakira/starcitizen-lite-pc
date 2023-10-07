@@ -3,6 +3,7 @@ import { release } from 'node:os'
 import { join } from 'node:path'
 import { chooseFile } from '../uitils/files'
 import { getZipFile } from '../network/CirnoAPIService'
+import { autoUpdater } from 'electron-updater'
 
 // The built directory structure
 //
@@ -78,6 +79,9 @@ async function createWindow() {
   win.setMinimumSize(1200, 800)
   win.setMenu(null)
 
+  // ipcMain.on('open-devtools', () => {
+  //   win.webContents.openDevTools()
+  // })
 
 }
 
@@ -92,7 +96,7 @@ app.whenReady().then(() => {
     return getZipFile(url, targetPath);
   })
   ipcMain.handle('get-app-path', (event) => {
-    return app.getPath('appData');
+    return app.getAppPath();
   })
 })
 
@@ -134,4 +138,10 @@ ipcMain.handle('open-win', (_, arg) => {
     childWindow.loadFile(indexHtml, { hash: arg })
   }
 })
+
+
+
+
+// Auto Update
+
 

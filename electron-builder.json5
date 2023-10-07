@@ -3,8 +3,13 @@
  */
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "star-refuge-pc",
+  "appId": "vip.kirakira.refuge-pc",
   "asar": true,
+  "asarUnpack": [
+    "./dist-electron",
+    "./dist"
+    ],
+  "compression": "maximum",
   "productName": "StarRefuge",
   "directories": {
     "output": "release/${version}"

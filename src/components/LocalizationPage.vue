@@ -66,11 +66,13 @@ export default {
             isInstalled: isInstalled,
             isNeedUpdate: isNeedUpdate,
             installButtonText: installButtonText,
-            users: []
+            users: [],
+            isLocalizationButtonLoading: false
         }
     },
     methods: {
         handleSelect(value: string) {
+            window.openDevTools()
             if (value === "choose_game_path") {
                 window.chooseFile({name: "StarCitizen", extensions: ['exe']}).then((res: string[] | undefined) => {
                 if (res != undefined) {
@@ -132,15 +134,18 @@ export default {
                 return
             }
             if (this.isInstalled && !this.isNeedUpdate) {
+                this.isLocalizationButtonLoading = true
                 uninstallLocalization().then(() => {
                     this.notification.success({
                         title: '成功',
                         content: '汉化卸载成功'
                     })
+                    this.isLocalizationButtonLoading = false
                     this.isInstalled = false
                     this.installButtonText = "安装汉化"
                     updateLocalizationSettings()
                 }).catch((err: any) => {
+                    this.isLocalizationButtonLoading = false
                     console.log(err)
                     this.notification.error({
                         title: '错误',
@@ -148,20 +153,24 @@ export default {
                     })
                 })
             } else {
+                this.isLocalizationButtonLoading = true
                 installLocalization(null).then(()=>
                         {
+                            this.isLocalizationButtonLoading = false
                             this.notification.success({
                                 title: '成功',
                                 content: '汉化安装成功'
                             })
                             this.isInstalled = true
                             this.installButtonText = "卸载汉化"
+                            this.isNeedUpdate = false
                         }
-                    ).catch((err: any) => {
+                    ).catch((err: Error) => {
+                        this.isLocalizationButtonLoading = false
                         console.log(err)
                         this.notification.error({
                             title: '错误',
-                            content: '汉化安装失败'
+                            content: err.message,
                         })
                     })
             }
@@ -239,12 +248,8 @@ export default {
             <n-button>{{ gameLocationButtonText }}</n-button>
         </n-dropdown>
         </div>
-        <div id="buttons-container">
-            <n-popselect v-model:value="value" :options="options" trigger="click">
-                <n-button id="install-localization-button" size="large" type="info" @click="handleLocalizationClick">{{ installButtonText }}</n-button>
-            </n-popselect>
-            <n-button id="start-game-button" size="large" type="primary" :disabled="true">启动游戏</n-button>
-        </div>
+        <n-button id="install-localization-button" :loading="isLocalizationButtonLoading" size="large" type="info" @click="handleLocalizationClick">{{ installButtonText }}</n-button>
+        <n-button id="start-game-button" size="large" type="primary" :disabled="true">启动游戏</n-button>
         
     </div>
 </template>
@@ -255,13 +260,15 @@ export default {
         height: 100%;
         position: absolute;
     }
-    #buttons-container {
+    #start-game-button {
         right: 50px;
-        bottom: 50px;
+        bottom: 45px;
         position: absolute;
     }
     #install-localization-button {
-        margin-right: 30px;
+        right: 170px;
+        bottom: 45px;
+        position: absolute;
     }
     #game-location-selector {
         left: 200px;

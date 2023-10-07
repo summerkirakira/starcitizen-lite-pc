@@ -6,8 +6,7 @@
   "author": "Summerkirakira <summerkirakira@gmail.com>",
   "license": "MIT",
   "private": true,
-  "keywords": [
-  ],
+  "keywords": [],
   "debug": {
     "env": {
       "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
@@ -39,6 +38,7 @@
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.4",
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.4",
     "unzipper": "^0.10.14",
     "uuid": "^9.0.1",
     "vue-router": "^4.2.5"

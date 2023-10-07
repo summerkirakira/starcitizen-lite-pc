@@ -9,6 +9,7 @@ declare global {
       database: CirnoDatabase
       chooseFile: (filter: Filter) => Promise<string[]>
       appPath: string
+      openDevTools: () => void
       fileManager: {
         getZipFile: (url: string, targetPath: string) => Promise<string>
       }

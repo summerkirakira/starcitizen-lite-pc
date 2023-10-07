@@ -6,7 +6,7 @@ import { NConfigProvider, GlobalThemeOverrides, NNotificationProvider } from 'na
 
 const themeOverrides: GlobalThemeOverrides = {
    common: {
-      primaryColor: '#66ccff',
+      // primaryColor: '#66ccff',
    }
 }
 

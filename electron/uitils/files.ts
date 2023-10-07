@@ -1,4 +1,3 @@
-import { LocalizationSettings } from './../settings/refuge_settings.d';
 const { dialog } = require('electron')
 const AdmZip = require("adm-zip")
 import fs from "fs";
@@ -8,7 +7,8 @@ import { getRefugeSettings, setRefugeSettings } from "./settings";
 import { FileSturcture } from "../network/CirnoAPIProperty";
 import CryptoJS from "crypto-js";
 
-declare class Filter {
+
+export class Filter {
     name: string;
     extensions: string[];
 }
@@ -35,6 +35,11 @@ export const extractZipToPathAsync = async (zipPath: string, targetPath: string)
 }
 
 export function getCachePath(): string {
+    const cachePath = path.join(window.appPath, 'cache')
+    if (!fs.existsSync(cachePath)) {
+        fs.mkdirSync(cachePath)
+    }
+    // console.log(cachePath)
     return path.join(window.appPath, 'cache')
 }
 
@@ -108,18 +113,26 @@ export async function installLocalization(localizationId: string | null): Promis
     if (!fs.existsSync(refugeSettings.gameSettings.currentGamePath)) {
         throw new Error('Localization already installed')
     }
+
     const localizationPath = path.join(refugeSettings.gameSettings.currentGamePath, localizationInfo.path)
-    fs.mkdirSync(localizationPath, { recursive: true })
+    try {
+        fs.mkdirSync(localizationPath, { recursive: true })
+    } catch (e) {
+        throw new Error('缺少对游戏目录的写权限，请使用管理员权限打开避难所')
+    }
     const missing_files = await validateFolder(localizationPath, localizationInfo.hashes)
     let downloadGlobalFlag = false
     let downloadFontFlag = false
     if (missing_files.length == 0) {
-        refugeSettings.localizationSettings.latestVersion = localizationInfo.localization_version
-        refugeSettings.localizationSettings.latestFontVersion = localizationInfo.localization_font_version
-        refugeSettings.localizationSettings.hashes = localizationInfo.hashes
-        refugeSettings.localizationSettings.path = localizationInfo.path
-        refugeSettings.localizationSettings.version = localizationInfo.localization_version
-        refugeSettings.localizationSettings.fontVersion = localizationInfo.localization_font_version
+        refugeSettings.localizationSettings = {
+            latestVersion: localizationInfo.localization_version,
+            latestFontVersion: localizationInfo.localization_font_version,
+            hashes: localizationInfo.hashes,
+            path: localizationInfo.path,
+            version: localizationInfo.localization_version,
+            fontVersion: localizationInfo.localization_font_version,
+            localizaitonId: localizationInfo.localization_id,
+        }
         setRefugeSettings(refugeSettings)
         writeLocalizationInfo()
         return
@@ -132,12 +145,12 @@ export async function installLocalization(localizationId: string | null): Promis
         }
     }
     if (downloadGlobalFlag) {
-        const zipPath = await window.CirnoApi.downloadGameZip(localizationInfo.localization_url, getCachePath())
+        const zipPath = await window.fileManager.getZipFile(localizationInfo.localization_url, getCachePath())
         console.log("find global.ini missing")
         extractZipToPath(zipPath, localizationPath)
     }
     if (downloadFontFlag) {
-        const zipPath = await window.CirnoApi.downloadGameZip(localizationInfo.localization_font_url, getCachePath())
+        const zipPath = await window.fileManager.getZipFile(localizationInfo.localization_font_url, getCachePath())
         console.log("find font missing")
         extractZipToPath(zipPath, localizationPath)
     }

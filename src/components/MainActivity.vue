@@ -2,13 +2,14 @@
 import LocalizationPage from './LocalizationPage.vue'
 import SettingsPage from './SettingsPage.vue'
 import HangarPage from './HangarPage.vue'
-import { NNotificationProvider } from 'naive-ui'
+import PhoneAppPage from './PhoneAppPage.vue'
 
 
 const routes: any = {
   '/': LocalizationPage,
   '/settings': SettingsPage,
-  '/hangar': HangarPage
+  '/hangar': HangarPage,
+  '/app': PhoneAppPage
 }
 export default {
   data() {

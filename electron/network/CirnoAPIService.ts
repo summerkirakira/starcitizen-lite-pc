@@ -81,6 +81,7 @@ export class CirnoApi {
     }
 
     async downloadGameZip(url: string, targetPath: string): Promise<string> {
+        console.log(url, targetPath)
         return getZipFile(url, targetPath)
     }
 

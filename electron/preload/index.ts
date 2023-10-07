@@ -1,10 +1,9 @@
 import path from 'path';
 import { db } from "../database/DatabaseEntities"
 import { CirnoApi } from "../network/CirnoAPIService"
-import { ipcRenderer } from "electron"
+import { app, ipcRenderer } from "electron"
 import { Filter, chooseFile } from "../uitils/files"
 import { initialize } from "./initialize"
-import fs from 'fs'
 
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -115,14 +114,13 @@ window.fileManager = {
 }
 
 ipcRenderer.invoke('get-app-path').then((appPath: string) => {
-  const refugePath = path.join(appPath, 'refuge-pc')
-  if(!fs.existsSync(refugePath)) {
-    fs.mkdirSync(refugePath)
-  }
-  if(!fs.existsSync(path.join(refugePath, 'cache'))) {
-    fs.mkdirSync(path.join(refugePath, 'cache'))
-  }
-  window.appPath = refugePath
+  // const refugePath = path.join(appPath, 'refuge-pc')
+  // if(!fs.existsSync(refugePath)) {
+  //   fs.mkdirSync(refugePath)
+  // }
+  window.appPath = path.dirname(appPath)
 })
+
+window.openDevTools = () => ipcRenderer.send('open-dev-tools')
 
 initialize()
