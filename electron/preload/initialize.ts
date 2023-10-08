@@ -65,7 +65,7 @@ function initializeWebSettings() {
     }
 }
 
-function refreshCsrfToken() {
+export function refreshCsrfToken() {
     ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
         console.log("get csrf token", token)
         window.webSettings.csrfToken = token.csrf_token

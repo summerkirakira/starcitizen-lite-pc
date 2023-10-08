@@ -141,7 +141,7 @@ ipcMain.handle('open-win', (_, arg) => {
   }
 })
 
-ipcMain.handle('get-csrf-token', (event, rsi_token: string, rsi_device: string): Promise<RsiValidateToken> => {
+ipcMain.handle('get-csrf-token', (event, rsi_device: string, rsi_token: string): Promise<RsiValidateToken> => {
   console.log("getting csrf token")
   return getCsrfToken(rsi_token, rsi_device)
 })

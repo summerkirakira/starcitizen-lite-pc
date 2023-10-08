@@ -27,12 +27,12 @@
         h(
           'a',
           {
-            href: '#/localization',
+            href: '#/login',
           },
           '账号信息'
         ),
       key: 'user-profile',
-      disabled: true,
+      disabled: false,
       icon: renderIcon(PersonIcon)
     },
     {

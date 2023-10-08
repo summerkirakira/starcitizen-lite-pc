@@ -1,4 +1,4 @@
-import { Announcement, LocalizationInfo, LocalizationInfoPostBody, AvailiableLocalization } from './CirnoAPIProperty.d';
+import { Announcement, LocalizationInfo, LocalizationInfoPostBody, AvailiableLocalization, ReCaptchaResponse } from './CirnoAPIProperty.d';
 import axios from "axios"
 import Store from 'electron-store'
 import fs from "fs"
@@ -93,7 +93,7 @@ export class CirnoApi {
         return fetchCirnoAPIGet<AvailiableLocalization[]>('localization/list')
     }
 
-    async getRecaptchaToken(): Promise<string> {
-        return fetchCirnoAPIGet<string>('v2/reCaptchaV3')
+    async getRecaptchaToken(): Promise<ReCaptchaResponse> {
+        return fetchCirnoAPIGet<ReCaptchaResponse>('v2/reCaptchaV3')
     }
 }

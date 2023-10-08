@@ -7,10 +7,17 @@ import { ipcRenderer } from "electron"
 const BASE_URL = 'https://robertsspaceindustries.com/'
 axios.defaults.withCredentials = true;
 
+const RsiAixoInstance = axios.create()
+
+RsiAixoInstance.interceptors.request.use((config) => {
+    console.log('AXIO HEADERS', config.headers)
+    return config
+})
 
 export async function RsiPost<T>(url: string, postData: any, headers: any): Promise<T> {
-    const { data } = await axios.post<T>(BASE_URL + url, postData, { headers, withCredentials: true})
-    console.log(data)
+    console.log(headers)
+    const { data } = await RsiAixoInstance.post<T>(BASE_URL + url, postData, { headers, withCredentials: true})
+    console.log(JSON.stringify(data))
     return data
 } 
 
@@ -33,27 +40,36 @@ async function MultiStepRsiLogin(code: string, headers: any): Promise<RsiLoginRe
     const postData: BasicGraphqlPostBody = {
         query: "mutation multistep($code: String!, $deviceType: String!, $deviceName: String!, $duration: String!) {\naccount_multistep(code: $code, device_type: $deviceType, device_name: $deviceName, duration: $duration) {\ndisplayname\nid\n__typename\n}\n}",
         variables: {
-            code
+            code,
+            deviceType: "computer",
+            deviceName: "RefugePC",
+            duration: "year"
         }
     }
-    const data = await ipcRenderer.invoke('rsi-api-post', 'graphql', postData, { headers }) as RsiLoginResponse
+    const data = await ipcRenderer.invoke('rsi-api-post', 'graphql', postData, headers) as RsiLoginResponse
     return data
 }
 
 export async function getCsrfToken(rsi_token: string, rsi_device: string): Promise<RsiValidateToken> {
     // Please note that this function is only avaliable in main process
+    // console.log('Getting csrf token', rsi_token, rsi_device)
     const regex = /<meta\s+name="csrf-token"\s+content="([^"]+)"\s*\/?>/i
     let cookie = "CookieConsent={stamp:%27-1%27%2Cnecessary:true%2Cpreferences:true%2Cstatistics:true%2Cmarketing:true%2Cmethod:%27implied%27%2Cver:1%2Cutc:1695456095624%2Cregion:%27CN%27};";
     if (rsi_device.length != 0) {
-        cookie += ` _rsi_device=${window.webSettings.rsi_device};`;
+        cookie += ` _rsi_device=${rsi_device};`;
     }
     if (rsi_token.length != 0) {
-        cookie += ` Rsi-Token=${window.webSettings.rsi_token};`;
+        cookie += ` Rsi-Token=${rsi_token};`; 
     }
-    const response = await axios.get<string>(BASE_URL, { headers: { 'Cookies': cookie } })
+    // console.log(cookie)
+    const response = await axios.get<string>(BASE_URL, { 
+        headers: { 'Cookie': cookie, 'Cache-Control': 'no-cache' },
+        params: { 'nocache': Date.now() }
+     })
     // console.log(response.headers)
     let new_rsi_token = ''
     if (response.headers['set-cookie']) {
+        console.log('Resetting Rsi-Token',response.headers['set-cookie'])
         new_rsi_token = response.headers['set-cookie'][0].split(';')[0].split('=')[1]
         cookie += ` Rsi-Token=${new_rsi_token};`;
         // console.log(cookie)
@@ -68,6 +84,7 @@ export async function getCsrfToken(rsi_token: string, rsi_device: string): Promi
     }
     
     const csrfToken = response.data.match(regex)
+    // console.log(response.data.slice(0, 2000))
     if (!csrfToken) {
         throw new Error('csrf token not found')
     }
@@ -90,8 +107,10 @@ export class RsiApiService {
     getHeaders(): any {
         const headers = {
             'x-csrf-token': window.webSettings.csrfToken,
+            'X-Csrf-Token': window.webSettings.csrfToken,
             'Cookie': getCookie(),
        }
+    //    console.log(headers)
          return headers
     }
 

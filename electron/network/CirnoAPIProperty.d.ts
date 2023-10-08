@@ -47,7 +47,7 @@ export interface ReCaptchaResponse {
     code: number;
     message: string;
     error: string | null;
-    captcha_list: {
+    captcha_list: [{
         token: string;
-    }
+    }]
 }

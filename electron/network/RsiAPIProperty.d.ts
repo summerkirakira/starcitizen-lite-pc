@@ -85,6 +85,12 @@ export interface RsiLoginResponse {
         {
             message: string;
             code: string;
+            extensions: {
+                details: {
+                    device_id: string;
+                    session_id: string;
+                }
+            }
         }
     ] | null;
 }
