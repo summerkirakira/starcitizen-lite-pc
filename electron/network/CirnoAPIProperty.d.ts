@@ -43,3 +43,11 @@ export interface AvailiableLocalization {
     description: string;
 }
 
+export interface ReCaptchaResponse {
+    code: number;
+    message: string;
+    error: string | null;
+    captcha_list: {
+        token: string;
+    }
+}

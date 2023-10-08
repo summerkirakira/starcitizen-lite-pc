@@ -92,4 +92,8 @@ export class CirnoApi {
     async getAvailiableLocalization(): Promise<AvailiableLocalization[]> {
         return fetchCirnoAPIGet<AvailiableLocalization[]>('localization/list')
     }
+
+    async getRecaptchaToken(): Promise<string> {
+        return fetchCirnoAPIGet<string>('v2/reCaptchaV3')
+    }
 }

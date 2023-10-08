@@ -27,3 +27,20 @@ export class RefugeSettings {
     localizationSettings: LocalizationSettings | null;
     availiabeLocalizations: AvailiableLocalization[];
 }
+
+export class GameStartUpSettings {
+    libraryFolder: string;
+    gameName: string;
+    channelId: string;
+    nickname: string;
+    token: string;
+    authToken: string;
+    hostname: string;
+    port: number;
+    installDir: string;
+    executable: string;
+    launchOptions: string;
+    servicesEndpoint: string;
+    network: string;
+    TMid: string;
+}

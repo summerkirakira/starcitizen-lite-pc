@@ -2,6 +2,8 @@ import Store from 'electron-store'
 
 import { getRefugeSettings, setRefugeSettings } from '../uitils/settings'
 import { updateLocalizationSettings } from '../uitils/files';
+import { ipcRenderer } from 'electron';
+import { RsiValidateToken } from '../network/RsiAPIProperty';
 
 
 const store = new Store()
@@ -11,6 +13,8 @@ export function initialize() {
     checkUUID()
     initializeGameSettings()
     fetchLocalizationInfo()
+    initializeWebSettings()
+    refreshCsrfToken()
 }
 
 
@@ -20,7 +24,6 @@ function checkUUID() {
     console.log(uuid)
 
     if (!uuid) {
-        const uuid = require('uuid').v4()
         store.set('uuid', require('uuid').v4())
     }
 }
@@ -50,4 +53,25 @@ async function fetchLocalizationInfo() {
     //     refugeSettings.availiabeLocalizations = availiableLocalizations
     //     setRefugeSettings(refugeSettings)
     // })
+}
+
+
+function initializeWebSettings() {
+    window.webSettings = {
+        csrfToken: '',
+        rsi_token: store.get('rsi_token', '') as string,
+        rsi_device: store.get('rsi_device', '') as string,
+        claims: '',
+    }
+}
+
+function refreshCsrfToken() {
+    ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
+        console.log("get csrf token", token)
+        window.webSettings.csrfToken = token.csrf_token
+        window.webSettings.rsi_token = token.rsi_token
+        window.webSettings.rsi_device = token.rsi_device
+        store.set('rsi_token', token.rsi_token)
+        store.set('rsi_device', token.rsi_device)
+      })
 }

@@ -8,6 +8,7 @@ import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/sett
 import fs from 'fs'
 import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
+import { GameLauncher } from '../../electron/rsi-sdk/game-launcher'
 
 const store = new Store()
 
@@ -230,6 +231,25 @@ export default {
             }).catch((err: any) => {
                 console.log(err)
             })
+        },
+        handleStartGameClick() {
+            const refugeSettings = getRefugeSettings()
+            if (refugeSettings.gameSettings == null) {
+                return
+            }
+            if (refugeSettings.gameSettings.currentGamePath == null) {
+                return
+            }
+            // const gameLauncher = new GameLauncher()
+            // const startOpts = {}
+            // gameLauncher.start(startOpts)
+            window.CirnoApi.getRecaptchaToken().then((tokenResponse) => {
+                window.RsiApi.login("", "", tokenResponse.captcha_list[0].token, true).then(
+                    (res) => {
+                        console.log(res)
+                    }
+                )
+            })
         }
     },
     mounted() {
@@ -249,7 +269,7 @@ export default {
         </n-dropdown>
         </div>
         <n-button id="install-localization-button" :loading="isLocalizationButtonLoading" size="large" type="info" @click="handleLocalizationClick">{{ installButtonText }}</n-button>
-        <n-button id="start-game-button" size="large" type="primary" :disabled="true">启动游戏</n-button>
+        <n-button id="start-game-button" size="large" type="primary" @click="handleStartGameClick">启动游戏</n-button>
         
     </div>
 </template>

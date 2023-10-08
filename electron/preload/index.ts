@@ -4,6 +4,11 @@ import { CirnoApi } from "../network/CirnoAPIService"
 import { app, ipcRenderer } from "electron"
 import { Filter, chooseFile } from "../uitils/files"
 import { initialize } from "./initialize"
+import { RsiApiService } from '../network/RsiAPIService';
+import { RsiValidateToken } from '../network/RsiAPIProperty';
+import Store from 'electron-store';
+
+const store = new Store()
 
 
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -105,6 +110,8 @@ setTimeout(removeLoading, 4999)
 
 window.CirnoApi = new CirnoApi()
 
+window.RsiApi = new RsiApiService()
+
 window.database = db
 
 window.chooseFile = (filter: Filter) => ipcRenderer.invoke('choose-file', filter)
@@ -124,3 +131,4 @@ ipcRenderer.invoke('get-app-path').then((appPath: string) => {
 window.openDevTools = () => ipcRenderer.send('open-dev-tools')
 
 initialize()
+

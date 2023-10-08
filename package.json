@@ -37,8 +37,10 @@
     "axios": "^1.5.1",
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.4",
+    "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.4",
+    "throttle-debounce": "^5.0.0",
     "unzipper": "^0.10.14",
     "uuid": "^9.0.1",
     "vue-router": "^4.2.5"
