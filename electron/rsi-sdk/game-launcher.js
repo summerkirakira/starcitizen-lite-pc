@@ -182,7 +182,7 @@ export class GameLauncher {
                 const gameFilesState = yield gameFilesManager.getGameFilesState();
                 // this.mainWindow.webContents.send(app_shared_1.IpcEvents.GAME_FILES_CHANGED, gameFilesState);
                 this.isGameRunning = false;
-                electron_log_1.default.info(`Setting timeout to delete login data for ${channelId} (${app_shared_1.configuration.loginDataRemovalTimeout / 1000} seconds)`);
+                // electron_log_1.default.info(`Setting timeout to delete login data for ${channelId} (${app_shared_1.configuration.loginDataRemovalTimeout / 1000} seconds)`);
                 // this.removeLoginDataTimeout[channelId] = setTimeout(() => {
                 //     if (this.removeLoginData[channelId]) {
                 //         this.removeLoginData[channelId]();

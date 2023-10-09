@@ -8,7 +8,7 @@ import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/sett
 import fs from 'fs'
 import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
-import { GameLauncher } from '../../electron/rsi-sdk/game-launcher'
+import { startGame } from '../../electron/uitils/start-game'
 
 const store = new Store()
 
@@ -34,7 +34,7 @@ export default {
 
         const gameLocationOptions: Label[] = []
         let gameLocationButtonText = "选择游戏路径"
-        console.log(refugeSettings)
+        // console.log(refugeSettings)
         let isInstalled = false
         let isNeedUpdate = false
         let installButtonText = "安装汉化"
@@ -189,7 +189,7 @@ export default {
             refugeSettings = getRefugeSettings()
             if (refugeSettings.localizationSettings != null) {
                 validateFolder(path.join(refugeSettings.gameSettings.currentGamePath, refugeSettings.localizationSettings.path), refugeSettings.localizationSettings.hashes).then((missingFiles: string[]) => {
-                    console.log(missingFiles)
+                    // console.log(missingFiles)
                     if (missingFiles.length == 0) {
                         this.isInstalled = true
                         if (!this.isNeedUpdate) {
@@ -240,16 +240,29 @@ export default {
             if (refugeSettings.gameSettings.currentGamePath == null) {
                 return
             }
+
+            startGame()
+            window.RsiApi.rsiLauncherSignin().then((res) => {
+                console.log(res)
+            }).catch((err) => {
+                console.log(err)
+            })
+
+            // window.RsiApi.getClaims().then((claims) => {
+            //     console.log(claims.data)
+            // }).catch((err) => {
+            //     console.log(err)
+            // })
             // const gameLauncher = new GameLauncher()
             // const startOpts = {}
             // gameLauncher.start(startOpts)
-            window.CirnoApi.getRecaptchaToken().then((tokenResponse) => {
-                window.RsiApi.login("", "", tokenResponse.captcha_list[0].token, true).then(
-                    (res) => {
-                        console.log(res)
-                    }
-                )
-            })
+            // window.CirnoApi.getRecaptchaToken().then((tokenResponse) => {
+            //     window.RsiApi.login("", "", tokenResponse.captcha_list[0].token, true).then(
+            //         (res) => {
+            //             console.log(res)
+            //         }
+            //     )
+            // })
         }
     },
     mounted() {

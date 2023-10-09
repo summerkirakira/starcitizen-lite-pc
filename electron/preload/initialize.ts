@@ -15,6 +15,7 @@ export function initialize() {
     fetchLocalizationInfo()
     initializeWebSettings()
     refreshCsrfToken()
+    initializeAccountSettings()
 }
 
 
@@ -66,7 +67,7 @@ function initializeWebSettings() {
 }
 
 export function refreshCsrfToken() {
-    ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
+    return ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
         console.log("get csrf token", token)
         window.webSettings.csrfToken = token.csrf_token
         window.webSettings.rsi_token = token.rsi_token
@@ -74,4 +75,17 @@ export function refreshCsrfToken() {
         store.set('rsi_token', token.rsi_token)
         store.set('rsi_device', token.rsi_device)
       })
+}
+
+function initializeAccountSettings() {
+    const email = store.get('account:email', '') as string
+    const password = store.get('account:password', '') as string
+    if (email.length != 0 && password.length != 0) {
+        const refugeSettings = getRefugeSettings()
+        refugeSettings.accountSettings = {
+            email: email,
+            password: password,
+        }
+        setRefugeSettings(refugeSettings)
+    }
 }

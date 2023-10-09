@@ -94,3 +94,11 @@ export interface RsiLoginResponse {
         }
     ] | null;
 }
+
+export interface RsiGameTokenResponse {
+    code: string;
+    success: number;
+    data: {
+        token: string;
+    };
+}

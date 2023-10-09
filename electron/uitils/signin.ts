@@ -6,7 +6,7 @@ const store = new Store()
 export async function rsiLogin(email: string, password: string) {
     const recaptcha = (await window.CirnoApi.getRecaptchaToken()).captcha_list[0].token
     const loginResponse = await window.RsiApi.login(email, password, recaptcha, true)
-    if (loginResponse.errors === null) {
+    if (loginResponse.errors === undefined) {
         return loginResponse
     }
     if (loginResponse.errors[0].code === 'AlreadyLoggedInException') {
@@ -16,7 +16,7 @@ export async function rsiLogin(email: string, password: string) {
         return loginResponse
     }
     if (loginResponse.errors[0].code === 'MultiStepRequiredException') {
-        console.log(loginResponse)
+        // console.log(loginResponse)
         window.webSettings.rsi_token = loginResponse.errors[0].extensions.details.session_id
         window.webSettings.rsi_device = loginResponse.errors[0].extensions.details.device_id
         store.set('rsi_token', window.webSettings.rsi_token)
@@ -27,6 +27,12 @@ export async function rsiLogin(email: string, password: string) {
     throw new Error(loginResponse.errors[0].code)
 }
 
+export async function rsiForceLogin(email: string, password: string) {
+    window.webSettings.rsi_token = ''
+    await refreshCsrfToken()
+    return rsiLogin(email, password)
+}
+
 export async function rsiMultiStepLogin(code: string) {
     const response = await window.RsiApi.multiStepLogin(code)
     if (response.errors === null) {
@@ -34,4 +40,14 @@ export async function rsiMultiStepLogin(code: string) {
     } else {
         throw new Error(response.errors[0].code)
     }
+}
+
+export async function rsiLauncherSignin() {
+    const response = await window.RsiApi.rsiLauncherSignin()
+    if (response.code === 'OK') {
+        window.webSettings.rsi_token = response.data.session_id
+        store.set('rsi_token', window.webSettings.rsi_token)
+    } else
+        throw new Error(response.code)
+
 }

@@ -1,7 +1,8 @@
 import axios from "axios"
-import { BasicGraphqlPostBody, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
+import { BasicGraphqlPostBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
 import { getCookie } from "../uitils/cookies-manager"
 import { ipcRenderer } from "electron"
+import { getRefugeSettings } from "../uitils/settings"
 
 
 const BASE_URL = 'https://robertsspaceindustries.com/'
@@ -52,7 +53,7 @@ async function MultiStepRsiLogin(code: string, headers: any): Promise<RsiLoginRe
 
 export async function getCsrfToken(rsi_token: string, rsi_device: string): Promise<RsiValidateToken> {
     // Please note that this function is only avaliable in main process
-    // console.log('Getting csrf token', rsi_token, rsi_device)
+    console.log('Getting csrf token', rsi_token, rsi_device)
     const regex = /<meta\s+name="csrf-token"\s+content="([^"]+)"\s*\/?>/i
     let cookie = "CookieConsent={stamp:%27-1%27%2Cnecessary:true%2Cpreferences:true%2Cstatistics:true%2Cmarketing:true%2Cmethod:%27implied%27%2Cver:1%2Cutc:1695456095624%2Cregion:%27CN%27};";
     if (rsi_device.length != 0) {
@@ -120,5 +121,57 @@ export class RsiApiService {
 
     async multiStepLogin(code: string): Promise<RsiLoginResponse> {
         return await MultiStepRsiLogin(code, this.getHeaders())
+    }
+
+    async getClaims(): Promise<RsiLauncherClaimResponse> {
+        const claims = await RsiPost<RsiLauncherClaimResponse>('api/launcher/v3/games/claims', {}, {
+            'x-rsi-token': window.webSettings.rsi_token,
+            'x-rsi-device': window.webSettings.rsi_device,
+        })
+        window.webSettings.claims = claims.data
+        return claims
+    }
+
+    async getLibrary(): Promise<RsiLauncherLibraryResponse> {
+        const library = await RsiPost<RsiLauncherLibraryResponse>('api/launcher/v3/games/library', { "claims": window.webSettings.claims }, {
+            'x-rsi-token': window.webSettings.rsi_token,
+            'x-rsi-device': window.webSettings.rsi_device,
+        })
+        return library
+    }
+
+    async rsiLauncherSignin(): Promise<RsiLauncherSigninResponse> {
+        const refugeSettings = getRefugeSettings()
+        const signin = await RsiPost<RsiLauncherSigninResponse>('api/launcher/v3/signin', {
+            "password": refugeSettings.accountSettings.password,
+            "username": refugeSettings.accountSettings.email,
+        }, {
+            'x-rsi-device': window.webSettings.rsi_device,
+        })
+        return signin
+    }
+
+    async getGameToken(claims: string): Promise<string> {
+        const token = await RsiPost<RsiGameTokenResponse>('api/launcher/v3/games/token', {
+            "claims": claims,
+            "gameId": "SC"
+        }, {
+            'x-rsi-token': window.webSettings.rsi_token,
+            'x-rsi-device': window.webSettings.rsi_device,
+        })
+        return token.data.token
+    }
+
+    async checkAccountStatus(): Promise<boolean> {
+        const response = await RsiPost<RsiLauncherSigninResponse>('api/launcher/v3/account/check', {}, {
+            'x-rsi-token': window.webSettings.rsi_token,
+            'x-rsi-device': window.webSettings.rsi_device,
+        })
+        console.log(response)
+        if (response.code === 'OK') {
+            return true
+        } else {
+            return false
+        }
     }
 }

@@ -6,10 +6,12 @@ import {
     NForm,
     NFormItemRow,
     NButton,
-    NInput
+    NInput,
+useNotification
  } from 'naive-ui';
 
- import { rsiLogin, rsiMultiStepLogin } from '../../electron/uitils/signin'
+ import { rsiForceLogin, rsiMultiStepLogin } from '../../electron/uitils/signin'
+ import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 
 export default {
     components: {
@@ -20,6 +22,12 @@ export default {
         NFormItemRow,
         NButton,
         NInput
+    },
+    setup() {
+        const notification = useNotification()
+        return {
+            notification
+        }
     },
     data() {
         return {
@@ -35,27 +43,56 @@ export default {
             this.isLoginBtnLoading = true
             if (this.isMultiStepVisible) {
                 rsiMultiStepLogin(this.loginCodeInputValue).then((res) => {
-                    console.log(res)
+                    // console.log(res)
                     if (res) {
                         console.log('登录成功')
+                        const refugeSettings = getRefugeSettings()
+                        refugeSettings.accountSettings = {
+                            email: this.loginEmailInputValue,
+                            password: this.loginPasswordInputValue
+                        }
+                        setRefugeSettings(refugeSettings)
+                        this.notification.success({
+                            title: '登录成功',
+                            content: '欢迎使用星河避难所'
+                        })
                     } else {
-                        console.log('登录失败')
+                        this.notification.error({
+                            title: '登录失败',
+                            content: '请检查邮箱验证码是否正确'
+                        })
                     }
                     this.isLoginBtnLoading = false
                 }).catch((err) => {
-                    console.log(err.message)
                     this.isLoginBtnLoading = false
                     this.isMultiStepVisible = false
+                    this.notification.error({
+                        title: '登录失败',
+                        content: err.message
+                    })
                 })
                 return
             }
             if (this.loginEmailInputValue && this.loginPasswordInputValue) {
-                rsiLogin(this.loginEmailInputValue, this.loginPasswordInputValue).then((res) => {
+                rsiForceLogin(this.loginEmailInputValue, this.loginPasswordInputValue).then((res) => {
                     console.log(res)
                     if (res) {
-                        console.log('登录成功')
+                        const refugeSettings = getRefugeSettings()
+                        refugeSettings.accountSettings = {
+                            email: this.loginEmailInputValue,
+                            password: this.loginPasswordInputValue
+                        }
+                        setRefugeSettings(refugeSettings)
+                        this.notification.success({
+                            title: '登录成功',
+                            content: `账号：${res.data.account_signin.displayname}(${res.data.account_signin.id}) 已登录`
+                        })
                     } else {
                         console.log('登录失败')
+                        this.notification.error({
+                            title: '登录失败',
+                            content: '请检查邮箱和密码是否正确'
+                        })
                     }
                     this.isLoginBtnLoading = false
                 }).catch((err) => {
@@ -64,8 +101,12 @@ export default {
                         this.isLoginBtnLoading = false
                         return
                     }
-                    console.log(err.message)
+                    console.log(err)
                     this.isLoginBtnLoading = false
+                    this.notification.error({
+                        title: '登录失败',
+                        content: err
+                    })
                 })
             } else {
                 console.log('请输入邮箱和密码')

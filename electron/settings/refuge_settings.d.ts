@@ -26,6 +26,10 @@ export class RefugeSettings {
     gameSettings: GameSettings | null;
     localizationSettings: LocalizationSettings | null;
     availiabeLocalizations: AvailiableLocalization[];
+    accountSettings: {
+        email: string;
+        password: string;
+    } | null;
 }
 
 export class GameStartUpSettings {
