@@ -73,7 +73,6 @@ export default {
     },
     methods: {
         handleSelect(value: string) {
-            window.openDevTools()
             if (value === "choose_game_path") {
                 window.chooseFile({name: "StarCitizen", extensions: ['exe']}).then((res: string[] | undefined) => {
                 if (res != undefined) {
@@ -130,6 +129,15 @@ export default {
             this.checkUpdate()
         },
         handleLocalizationClick() {
+
+            window.RsiApi.getPage('account/pledges?page=21&pagesize=10').then((res) => {
+                console.log(res)
+            }).catch((err) => {
+                console.log(err)
+            })
+
+            return
+
             const refugeSettings = getRefugeSettings()
             if (refugeSettings.gameSettings == null) {
                 return

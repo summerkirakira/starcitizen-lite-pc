@@ -1,10 +1,10 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, globalShortcut } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { chooseFile } from '../uitils/files'
 import { getZipFile } from '../network/CirnoAPIService'
 import { autoUpdater } from 'electron-updater'
-import { RsiPost, getCsrfToken } from '../network/RsiAPIService'
+import { RsiGet, RsiPost, getCsrfToken } from '../network/RsiAPIService'
 import { RsiValidateToken } from '../network/RsiAPIProperty'
 
 // The built directory structure
@@ -62,7 +62,9 @@ async function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
     win.loadURL(url)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    win.on("ready-to-show", () => {
+      win.webContents.openDevTools();
+    });
   } else {
     win.loadFile(indexHtml)
   }
@@ -89,6 +91,11 @@ async function createWindow() {
 
 app.whenReady().then(() => { 
   createWindow()
+  
+  globalShortcut.register('CommandOrControl+Shift+I', () => {
+    BrowserWindow.getFocusedWindow().webContents.openDevTools();
+  });
+
   const ElectronStore = require('electron-store');
   ElectronStore.initRenderer();
   ipcMain.handle('choose-file', (event, filter) => {
@@ -148,6 +155,10 @@ ipcMain.handle('get-csrf-token', (event, rsi_device: string, rsi_token: string):
 
 ipcMain.handle('rsi-api-post', (event, url: string, postData: any, headers: any): Promise<any> => {
     return RsiPost(url, postData, headers)
+})
+
+ipcMain.handle('rsi-api-get', (event, url: string, headers: any): Promise<any> => {
+  return RsiGet(url, headers)
 })
 
 

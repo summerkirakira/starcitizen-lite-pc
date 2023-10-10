@@ -16,11 +16,16 @@ RsiAixoInstance.interceptors.request.use((config) => {
 })
 
 export async function RsiPost<T>(url: string, postData: any, headers: any): Promise<T> {
-    console.log(headers)
+    // console.log(headers)
     const { data } = await RsiAixoInstance.post<T>(BASE_URL + url, postData, { headers, withCredentials: true})
     console.log(JSON.stringify(data))
     return data
 } 
+
+export async function RsiGet<T>(url: string, headers: any): Promise<T> {
+    const { data } = await RsiAixoInstance.get<T>(BASE_URL + url, { headers , withCredentials: true})
+    return data
+}
 
 
 async function RsiLogin(email: string, password: string, captcha: string, remember: boolean, headers: any): Promise<RsiLoginResponse> {
@@ -108,11 +113,16 @@ export class RsiApiService {
     getHeaders(): any {
         const headers = {
             'x-csrf-token': window.webSettings.csrfToken,
-            'X-Csrf-Token': window.webSettings.csrfToken,
+            // 'X-Csrf-Token': window.webSettings.csrfToken,
             'Cookie': getCookie(),
        }
     //    console.log(headers)
          return headers
+    }
+
+    async getPage(url: string): Promise<string> {
+        const data = await ipcRenderer.invoke('rsi-api-get', url, this.getHeaders())
+        return data
     }
 
     async login(email: string, password: string, captcha: string, remember: boolean): Promise<RsiLoginResponse> {
