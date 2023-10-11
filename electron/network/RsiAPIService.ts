@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { AxiosResponse } from "axios"
 import { BasicGraphqlPostBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
 import { getCookie } from "../uitils/cookies-manager"
 import { ipcRenderer } from "electron"
@@ -18,9 +18,16 @@ RsiAixoInstance.interceptors.request.use((config) => {
 export async function RsiPost<T>(url: string, postData: any, headers: any): Promise<T> {
     // console.log(headers)
     const { data } = await RsiAixoInstance.post<T>(BASE_URL + url, postData, { headers, withCredentials: true})
-    console.log(JSON.stringify(data))
     return data
 } 
+
+export async function RsiPostWithFullResponse<T>(url: string, postData: any, headers: any): Promise<any> {
+    const response = await RsiAixoInstance.post<T>(BASE_URL + url, postData, { headers, withCredentials: true})
+    return {
+        data: response.data,
+        set_cookie: response.headers['set-cookie']
+    }
+}
 
 export async function RsiGet<T>(url: string, headers: any): Promise<T> {
     const { data } = await RsiAixoInstance.get<T>(BASE_URL + url, { headers , withCredentials: true})
@@ -28,7 +35,7 @@ export async function RsiGet<T>(url: string, headers: any): Promise<T> {
 }
 
 
-async function RsiLogin(email: string, password: string, captcha: string, remember: boolean, headers: any): Promise<RsiLoginResponse> {
+async function RsiLogin(email: string, password: string, captcha: string, remember: boolean, headers: any): Promise<AxiosResponse> {
     const postData: BasicGraphqlPostBody = {
         query: "mutation signin($email: String!, $password: String!, $captcha: String, $remember: Boolean) {\naccount_signin(email: $email, password: $password, captcha: $captcha, remember: $remember) {\ndisplayname\nid\n__typename\n}\n}",
         variables: {
@@ -38,7 +45,7 @@ async function RsiLogin(email: string, password: string, captcha: string, rememb
             remember
         }
     }
-    const data = await ipcRenderer.invoke('rsi-api-post', 'graphql', postData, headers) as RsiLoginResponse
+    const data = await ipcRenderer.invoke('rsi-api-post-with-full-response', 'graphql', postData, headers) as RsiLoginResponse
     return data
 }
 
@@ -125,7 +132,7 @@ export class RsiApiService {
         return data
     }
 
-    async login(email: string, password: string, captcha: string, remember: boolean): Promise<RsiLoginResponse> {
+    async login(email: string, password: string, captcha: string, remember: boolean): Promise<any> {
         return await RsiLogin(email, password, captcha, remember, this.getHeaders())
     }
 
@@ -173,15 +180,19 @@ export class RsiApiService {
     }
 
     async checkAccountStatus(): Promise<boolean> {
-        const response = await RsiPost<RsiLauncherSigninResponse>('api/launcher/v3/account/check', {}, {
-            'x-rsi-token': window.webSettings.rsi_token,
-            'x-rsi-device': window.webSettings.rsi_device,
-        })
-        console.log(response)
-        if (response.code === 'OK') {
-            return true
-        } else {
+        try {
+            const response = await RsiPost<RsiLauncherSigninResponse>('api/launcher/v3/account/check', {}, {
+                'x-rsi-token': window.webSettings.rsi_token,
+                'x-rsi-device': window.webSettings.rsi_device,
+            })
+            if (response.code === 'OK') {
+                return true
+            } else {
+                return false
+            }
+        } catch (error) {
             return false
         }
+        
     }
 }

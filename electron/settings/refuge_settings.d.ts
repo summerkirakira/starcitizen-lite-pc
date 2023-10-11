@@ -1,3 +1,4 @@
+import { User } from "../database/DatabaseEntities";
 import { FileSturcture } from "../network/CirnoAPIProperty";
 
 export class GameSettings {
@@ -26,6 +27,7 @@ export class RefugeSettings {
     gameSettings: GameSettings | null;
     localizationSettings: LocalizationSettings | null;
     availiabeLocalizations: AvailiableLocalization[];
+    currentUser: User | null;
     accountSettings: {
         email: string;
         password: string;

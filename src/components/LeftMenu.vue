@@ -27,7 +27,7 @@
         h(
           'a',
           {
-            href: '#/login',
+            href: '#/user-profile',
           },
           '账号信息'
         ),
@@ -61,12 +61,12 @@
         h(
           'a',
           {
-            href: '#/localization',
+            href: '#/hangar',
           },
           '我的机库'
         ),
       key: 'my-hangar',
-      disabled: true,
+      disabled: false,
       icon: renderIcon(RocketIcon)
     },
     {

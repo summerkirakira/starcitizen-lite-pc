@@ -18,8 +18,8 @@ function getChannelData(libray: RsiLauncherLibraryResponse, channelId: string) {
 }
 
 export async function startGame() {
-    await rsiLauncherSignin()
-    await window.RsiApi.checkAccountStatus()
+    const isLogin  = await window.RsiApi.checkAccountStatus()
+    if (!isLogin) await rsiLauncherSignin()
     const refugeSettings = getRefugeSettings()
     const claim = (await window.RsiApi.getClaims()).data
     const library = await window.RsiApi.getLibrary()

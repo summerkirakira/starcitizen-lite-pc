@@ -9,6 +9,7 @@ import fs from 'fs'
 import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
 import { startGame } from '../../electron/uitils/start-game'
+import { getUser } from '../../electron/network/user-parser/UserParser'
 
 const store = new Store()
 
@@ -129,14 +130,6 @@ export default {
             this.checkUpdate()
         },
         handleLocalizationClick() {
-
-            window.RsiApi.getPage('account/pledges?page=21&pagesize=10').then((res) => {
-                console.log(res)
-            }).catch((err) => {
-                console.log(err)
-            })
-
-            return
 
             const refugeSettings = getRefugeSettings()
             if (refugeSettings.gameSettings == null) {

@@ -2,7 +2,7 @@
 import LeftMenu from './components/LeftMenu.vue'
 import MainActivity from './components/MainActivity.vue'
 
-import { NConfigProvider, GlobalThemeOverrides, NNotificationProvider } from 'naive-ui'
+import { NConfigProvider, GlobalThemeOverrides, NNotificationProvider, useNotification } from 'naive-ui'
 
 const themeOverrides: GlobalThemeOverrides = {
    common: {

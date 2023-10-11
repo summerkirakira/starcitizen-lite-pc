@@ -51,6 +51,10 @@ function writeJsonFile (filePath: string, json: any) {
     fs.writeFileSync(filePath, JSON.stringify(json, null, 4))
 }
 
+function writeLanguageFile (filePath: string, language: string) {
+    fs.writeFileSync(filePath, `g_language=${language}`)
+}
+
 
 export const readLocalizationInfo = (filePath: string): LocalizationSettings => {
     const json = readJsonFile(filePath)
@@ -169,6 +173,7 @@ export async function installLocalization(localizationId: string | null): Promis
     }
     setRefugeSettings(refugeSettings)
     writeLocalizationInfo()
+    writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'chinese_(simplified)')
 }
 
 export function updateLocalizationSettings() {
@@ -186,5 +191,6 @@ export async function uninstallLocalization(): Promise<void> {
         throw new Error('No game path found')
     }
     const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
+    writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'english')
     return fs.promises.rmdir(localizationFolderPath, { recursive: true })
 }

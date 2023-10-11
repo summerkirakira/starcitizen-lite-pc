@@ -17,6 +17,10 @@ export interface RsiLauncherSigninResponse {
     } | null;
 }
 
+export interface RsiLauncherAccountCheckResponse {
+
+}
+
 export interface RsiLauncherClaimResponse {
     code: string;
     success: number;
@@ -78,7 +82,7 @@ export interface RsiLoginResponse {
     data: {
         account_signin: {
             displayname: string;
-            id: string;
+            id: number;
         } | null;
     }
     errors: [

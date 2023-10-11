@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { chooseFile } from '../uitils/files'
 import { getZipFile } from '../network/CirnoAPIService'
 import { autoUpdater } from 'electron-updater'
-import { RsiGet, RsiPost, getCsrfToken } from '../network/RsiAPIService'
+import { RsiGet, RsiPost, RsiPostWithFullResponse, getCsrfToken } from '../network/RsiAPIService'
 import { RsiValidateToken } from '../network/RsiAPIProperty'
 
 // The built directory structure
@@ -155,6 +155,10 @@ ipcMain.handle('get-csrf-token', (event, rsi_device: string, rsi_token: string):
 
 ipcMain.handle('rsi-api-post', (event, url: string, postData: any, headers: any): Promise<any> => {
     return RsiPost(url, postData, headers)
+})
+
+ipcMain.handle('rsi-api-post-with-full-response', (event, url: string, postData: any, headers: any): Promise<any> => {
+    return RsiPostWithFullResponse(url, postData, headers)
 })
 
 ipcMain.handle('rsi-api-get', (event, url: string, headers: any): Promise<any> => {

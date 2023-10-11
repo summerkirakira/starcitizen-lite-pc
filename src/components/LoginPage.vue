@@ -11,7 +11,20 @@ useNotification
  } from 'naive-ui';
 
  import { rsiForceLogin, rsiMultiStepLogin } from '../../electron/uitils/signin'
- import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
+ import { addUserToDatabase, getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
+ import { getUser } from '../../electron/network/user-parser/UserParser'
+ import { User } from '../../electron/database/DatabaseEntities'
+
+function addNewUser(user: User) {
+    const refugeSettings = getRefugeSettings()
+    refugeSettings.accountSettings = {
+        email: user.email,
+        password: user.password
+    }
+    refugeSettings.currentUser = user
+    addUserToDatabase(user)
+    setRefugeSettings(refugeSettings)
+}
 
 export default {
     components: {
@@ -45,17 +58,21 @@ export default {
                 rsiMultiStepLogin(this.loginCodeInputValue).then((res) => {
                     // console.log(res)
                     if (res) {
-                        console.log('登录成功')
-                        const refugeSettings = getRefugeSettings()
-                        refugeSettings.accountSettings = {
-                            email: this.loginEmailInputValue,
-                            password: this.loginPasswordInputValue
+                        try {
+                          getUser(res.data.account_signin.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
+                            addNewUser(user)
+                            const refugeSettings = getRefugeSettings()
+                              this.notification.success({
+                                title: '登录成功',
+                                content: `账号：${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id}) 已登录`
+                            })
+                          })
+                        } catch (err) {
+                              this.notification.error({
+                              title: '登录失败',
+                              content: err.message
+                          })
                         }
-                        setRefugeSettings(refugeSettings)
-                        this.notification.success({
-                            title: '登录成功',
-                            content: '欢迎使用星河避难所'
-                        })
                     } else {
                         this.notification.error({
                             title: '登录失败',
@@ -77,15 +94,20 @@ export default {
                 rsiForceLogin(this.loginEmailInputValue, this.loginPasswordInputValue).then((res) => {
                     console.log(res)
                     if (res) {
-                        const refugeSettings = getRefugeSettings()
-                        refugeSettings.accountSettings = {
-                            email: this.loginEmailInputValue,
-                            password: this.loginPasswordInputValue
-                        }
-                        setRefugeSettings(refugeSettings)
-                        this.notification.success({
-                            title: '登录成功',
-                            content: `账号：${res.data.account_signin.displayname}(${res.data.account_signin.id}) 已登录`
+                        getUser(res.data.account_signin.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
+                          try {
+                            addNewUser(user)
+                            this.notification.success({
+                              title: '登录成功',
+                              content: `账号：${res.data.account_signin.displayname}(${res.data.account_signin.id}) 已登录`
+                          })
+                          } catch (err) {
+                              this.notification.error({
+                              title: '登录失败',
+                              content: err.message
+                          })
+                          }
+                          
                         })
                     } else {
                         console.log('登录失败')

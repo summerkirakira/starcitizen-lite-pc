@@ -2,6 +2,7 @@ import { Filter, chooseFile } from './electron/uitils/files';
 import { CirnoDatabase } from './electron/database/DatabaseEntities'
 import { CirnoApi } from './electron/network/CirnoAPIService'
 import { RsiApiService } from './electron/network/RsiAPIService';
+import { User } from './electron/database/DatabaseEntities';
 
 
 declare global {
@@ -20,7 +21,8 @@ declare global {
         rsi_token: string
         rsi_device: string
         claims: string
-      }
+      },
+      cureentUser: User
     }
 }
 

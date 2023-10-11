@@ -1,11 +1,9 @@
 import path from 'path';
-import { db } from "../database/DatabaseEntities"
 import { CirnoApi } from "../network/CirnoAPIService"
-import { app, ipcRenderer } from "electron"
-import { Filter, chooseFile } from "../uitils/files"
+import { ipcRenderer } from "electron"
+import { Filter} from "../uitils/files"
 import { initialize } from "./initialize"
 import { RsiApiService } from '../network/RsiAPIService';
-import { RsiValidateToken } from '../network/RsiAPIProperty';
 import Store from 'electron-store';
 
 const store = new Store()
@@ -111,8 +109,6 @@ setTimeout(removeLoading, 4999)
 window.CirnoApi = new CirnoApi()
 
 window.RsiApi = new RsiApiService()
-
-window.database = db
 
 window.chooseFile = (filter: Filter) => ipcRenderer.invoke('choose-file', filter)
 

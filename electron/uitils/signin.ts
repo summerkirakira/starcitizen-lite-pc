@@ -1,12 +1,20 @@
 import Store from 'electron-store'
 import { refreshCsrfToken } from '../preload/initialize'
+import { RsiLoginResponse } from '../network/RsiAPIProperty'
 
 const store = new Store()
 
 export async function rsiLogin(email: string, password: string) {
     const recaptcha = (await window.CirnoApi.getRecaptchaToken()).captcha_list[0].token
-    const loginResponse = await window.RsiApi.login(email, password, recaptcha, true)
+    const response = await window.RsiApi.login(email, password, recaptcha, true)
+    const loginResponse = response.data as RsiLoginResponse
     if (loginResponse.errors === undefined) {
+        for (const set_cookie of response.set_cookie) {
+            if (set_cookie.startsWith('Rsi-Token')) {
+                window.webSettings.rsi_token = set_cookie.split(';')[0].split('=')[1]
+                store.set('rsi_token', window.webSettings.rsi_token)
+            }
+        }
         return loginResponse
     }
     if (loginResponse.errors[0].code === 'AlreadyLoggedInException') {

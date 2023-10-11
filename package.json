@@ -40,6 +40,7 @@
     "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.4",
+    "moment": "^2.29.4",
     "throttle-debounce": "^5.0.0",
     "unzipper": "^0.10.14",
     "uuid": "^9.0.1",
