@@ -1,11 +1,16 @@
 import { app, BrowserWindow, shell, ipcMain, globalShortcut } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
-import { chooseFile } from '../uitils/files'
-import { getZipFile } from '../network/CirnoAPIService'
+import { chooseFile, extractZipToPath } from '../uitils/files'
+import { CirnoApi, getZipFile } from '../network/CirnoAPIService'
 import { autoUpdater } from 'electron-updater'
 import { RsiGet, RsiPost, RsiPostWithFullResponse, getCsrfToken } from '../network/RsiAPIService'
 import { RsiValidateToken } from '../network/RsiAPIProperty'
+import fs from 'fs'
+import fse from 'fs-extra'
+import path from 'path'
+import { compareVersions } from 'compare-versions'
+import axios from 'axios'
 
 // The built directory structure
 //
@@ -171,4 +176,45 @@ ipcMain.handle('rsi-api-get', (event, url: string, headers: any): Promise<any> =
 
 // Auto Update
 
+const appPath = path.dirname(app.getAppPath());
 
+const unpackDownloadPath = path.join(appPath, 'app.asar.unpacked.zip');
+
+const untgzPath = path.join(appPath, 'app.asar.unpacked');
+
+const appVersion = '1.0.0';
+
+console.log('appPath', appPath);
+console.log('appVersion', appVersion);
+console.log('unpackDownloadPath', unpackDownloadPath);
+console.log('untgzPath', untgzPath);
+
+new CirnoApi().getDesktopVersion().then((version) => {
+  console.log('desktop version', version);
+  if (compareVersions(version.version, appVersion) > 0) {
+    console.log('new version found');
+    axios.get(version.download_url, {
+      responseType: 'arraybuffer',
+    }).then((response) => {
+      fs.writeFileSync(unpackDownloadPath, response.data);
+      uncompressAndUpdate();
+    });
+  }
+});
+
+
+function uncompressAndUpdate() {
+  // 先备份当前的 app.asar.unpacked 目录
+  fse.renameSync(untgzPath, `${untgzPath}.back`);
+  try {
+    extractZipToPath(unpackDownloadPath, untgzPath);
+    fse.removeSync(`${untgzPath}.back`);
+    fse.removeSync(unpackDownloadPath);
+    app.relaunch();
+    app.exit(0);
+  } catch (err) {
+    // 记录错误日志
+    console.log(err);
+    fs.renameSync(`${untgzPath}.back`, untgzPath);
+  }
+}

@@ -114,4 +114,8 @@ export class CirnoApi {
     async getTranslationVersion(): Promise<TranslationVersion> {
         return fetchCirnoAPIGet<TranslationVersion>('translation/version')
     }
+
+    async getDesktopVersion(): Promise<{version: string, download_url: string}> {
+        return fetchCirnoAPIGet<{version: string, download_url: string}>('desktop/version')
+    }
 }

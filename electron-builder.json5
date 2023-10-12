@@ -46,5 +46,6 @@
       "AppImage"
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}"
-  }
+  },
+  "afterPack": "./scripts/afterPack.js"
 }

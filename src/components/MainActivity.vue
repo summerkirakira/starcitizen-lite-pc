@@ -68,6 +68,14 @@ export default {
             title: '重新登录成功',
             content: `欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`
           })
+        }).catch((err) => {
+          this.notification.error({
+            title: '自动登录失败',
+            content: `请重新登录 (${err.message}})`
+          })
+          const refugeSettings = getRefugeSettings()
+          refugeSettings.currentUser = null
+          setRefugeSettings(refugeSettings)
         })
       }
     })
