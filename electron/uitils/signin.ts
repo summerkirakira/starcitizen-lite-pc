@@ -43,7 +43,7 @@ export async function rsiForceLogin(email: string, password: string) {
 
 export async function rsiMultiStepLogin(code: string) {
     const response = await window.RsiApi.multiStepLogin(code)
-    if (response.errors === null) {
+    if (response.errors === null || response.errors === undefined) {
         return response
     } else {
         throw new Error(response.errors[0].code)

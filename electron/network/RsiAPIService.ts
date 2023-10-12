@@ -181,11 +181,11 @@ export class RsiApiService {
 
     async checkAccountStatus(): Promise<boolean> {
         try {
-            const response = await RsiPost<RsiLauncherSigninResponse>('api/launcher/v3/account/check', {}, {
+            const response = await RsiPost<any>('api/launcher/v3/account/check', {}, {
                 'x-rsi-token': window.webSettings.rsi_token,
                 'x-rsi-device': window.webSettings.rsi_device,
             })
-            if (response.code === 'OK') {
+            if (response.data.auth) {
                 return true
             } else {
                 return false

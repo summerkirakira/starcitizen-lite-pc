@@ -14,7 +14,8 @@
     RocketOutline as RocketIcon,
     SettingsOutline as SettingsIcon,
     BuildOutline as BuildIcon,
-    PhonePortraitOutline as PhoneIcon
+    PhonePortraitOutline as PhoneIcon,
+    ChatboxEllipsesOutline as ChatboxIcon
   } from '@vicons/ionicons5'
 import { useNotification } from 'naive-ui'
 import { getRefugeSettings } from '../../electron/uitils/settings'
@@ -44,7 +45,7 @@ import { getRefugeSettings } from '../../electron/uitils/settings'
         h(
           'a',
           {
-            href: '#/user-profile',
+            href: '#/login',
           },
           '账号信息'
         ),
@@ -137,6 +138,19 @@ import { getRefugeSettings } from '../../electron/uitils/settings'
       key: 'my-apps',
       disabled: false,
       icon: renderIcon(PhoneIcon)
+    },
+    {
+      label: () =>
+        h(
+          'a',
+          {
+            href: '#/bug-report',
+          },
+          '问题反馈'
+        ),
+      key: 'my-bug-report',
+      disabled: false,
+      icon: renderIcon(ChatboxIcon)
     },
   ]
   

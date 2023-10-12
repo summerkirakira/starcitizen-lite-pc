@@ -62,7 +62,7 @@ function convertBuybackItemsToTableData(items: BuybackItem[]): BuybackItemTableD
     return result
 }
 
-async function refreshHangarItemTable(): Promise<BuybackItemTableData[]> {
+async function refreshBuybackItemTable(): Promise<BuybackItemTableData[]> {
     const hangar_items = await refreshBuybackItems()
     const table_data = convertBuybackItemsToTableData(hangar_items)
     return table_data
@@ -114,9 +114,8 @@ export default {
         }
 
         this.table_data = getCachedHangarItemTable()
-        console.log(this.table_data[0])
         this.loadingBar.start()
-        refreshBuybackItems().then((table_data) => {
+        refreshBuybackItemTable().then((table_data) => {
             this.table_data = table_data
             this.notification.success({
                 title: '刷新回购成功',
@@ -133,7 +132,7 @@ export default {
     },
     methods: {
         async handleRefreshBtnClicked() {
-            this.table_data = await refreshHangarItemTable()
+            this.table_data = await refreshBuybackItemTable()
         }
         
     },

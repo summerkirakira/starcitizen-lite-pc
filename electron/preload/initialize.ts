@@ -60,10 +60,18 @@ async function fetchLocalizationInfo() {
 
 
 function initializeWebSettings() {
+    let rsi_divice = store.get('rsi_device', '') as string
+    if (rsi_divice == null) {
+        rsi_divice = ''
+    }
+    let rsi_token = store.get('rsi_token', '') as string
+    if (rsi_token == null) {
+        rsi_token = ''
+    }
     window.webSettings = {
         csrfToken: '',
-        rsi_token: store.get('rsi_token', '') as string,
-        rsi_device: store.get('rsi_device', '') as string,
+        rsi_token: rsi_divice,
+        rsi_device: rsi_token,
         claims: '',
     }
 }

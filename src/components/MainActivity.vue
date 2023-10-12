@@ -5,6 +5,7 @@ import HangarPage from './HangarPage.vue'
 import PhoneAppPage from './PhoneAppPage.vue'
 import LoginPage from './LoginPage.vue'
 import BuybackPage from './BuybackPage.vue'
+import BugReportPage from './BugReportPage.vue'
 import { KeepAlive } from 'vue'
 import { useNotification } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
@@ -19,7 +20,8 @@ const routes: any = {
   '/app': PhoneAppPage,
   '/login': LoginPage,
   '/user-profile': UserProfile,
-  '/buyback': BuybackPage
+  '/buyback': BuybackPage,
+  '/bug-report': BugReportPage,
 }
 export default {
   data() {

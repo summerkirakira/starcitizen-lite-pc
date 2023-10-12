@@ -15,6 +15,7 @@ export default {
         console.log(refugeSettings)
         if (refugeSettings.currentUser == null) {
             window.location.hash = '#/login'
+            return
         }
         const users = getUsersFromDatabase()
         this.options = []

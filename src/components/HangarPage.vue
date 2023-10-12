@@ -11,6 +11,8 @@ import { h } from 'vue'
 import moment from 'moment'
 import { useNotification, useLoadingBar } from 'naive-ui'
 import { getRefugeSettings } from '../../electron/uitils/settings'
+import { NButton, NIcon } from 'naive-ui'
+import { RefreshOutline as RefreshIcon } from '@vicons/ionicons5'
 
 interface HangarItemTableData {
     id: number,
@@ -127,7 +129,10 @@ export default {
     },
     components: {
         NSpace,
-        NDataTable
+        NDataTable,
+        NButton,
+        NIcon,
+        RefreshIcon
     },
     mounted() {
         const refugeSettings = getRefugeSettings()
@@ -140,27 +145,26 @@ export default {
             return
         }
         this.table_data = getCachedHangarItemTable()
-        // console.log(this.table_data[0])
-        this.loadingBar.start()
-        refreshHangarItemTable().then((table_data) => {
-            this.table_data = table_data
-            this.notification.success({
-                title: '刷新机库成功',
-                content: '机库列表已更新'
-            })
-            this.loadingBar.finish()
-        }).catch((err) => {
-            this.notification.error({
-                title: '刷新机库失败',
-                content: '请检查网络连接'
-            })
-            this.loadingBar.error()
-        })
+        this.handleRefreshBtnClicked()
     },
     methods: {
-        async handleRefreshBtnClicked() {
-            this.table_data = await refreshHangarItemTable()
-        }
+        handleRefreshBtnClicked() {
+            this.loadingBar.start()
+            refreshHangarItemTable().then((table_data) => {
+                this.table_data = table_data
+                this.notification.success({
+                    title: '刷新机库成功',
+                    content: '机库列表已更新'
+                })
+                this.loadingBar.finish()
+            }).catch((err) => {
+                this.notification.error({
+                    title: '刷新机库失败',
+                    content: '请检查网络连接'
+                })
+                this.loadingBar.error()
+            })
+        },
         
     },
     data() {
@@ -316,6 +320,11 @@ export default {
         :row-class-name="rowClassName"
         flex-height
     />
+        <n-button circle id="refresh-button" @click="handleRefreshBtnClicked">
+            <template #icon>
+                <n-icon><refresh-icon /></n-icon>
+            </template>
+        </n-button>
     </div>
 </template>
 
@@ -331,5 +340,11 @@ export default {
 }
 :deep(.upgrade title) {
   color: rgba(7, 241, 104, 0.75) !important;
+}
+#refresh-button {
+    position: fixed;
+    bottom: 60px;
+    right: 60px;
+    z-index: 100;
 }
 </style>

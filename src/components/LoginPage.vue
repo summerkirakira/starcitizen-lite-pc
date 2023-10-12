@@ -55,19 +55,23 @@ export default {
         handleLoginBtnClicked() {
             this.isLoginBtnLoading = true
             if (this.isMultiStepVisible) {
-                rsiMultiStepLogin(this.loginCodeInputValue).then((res) => {
+                rsiMultiStepLogin(this.loginCodeInputValue).then((res: any) => {
                     // console.log(res)
                     if (res) {
                         try {
-                          getUser(res.data.account_signin.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
+                          getUser(res.data.account_multistep.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
                             addNewUser(user)
                             const refugeSettings = getRefugeSettings()
                               this.notification.success({
                                 title: '登录成功',
                                 content: `账号：${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id}) 已登录`
                             })
+                            this.isMultiStepVisible = false
+                            this.loginEmailInputValue = ''
+                            this.loginPasswordInputValue = ''
                           })
                         } catch (err) {
+                          console.log(err)
                               this.notification.error({
                               title: '登录失败',
                               content: err.message
@@ -81,6 +85,7 @@ export default {
                     }
                     this.isLoginBtnLoading = false
                 }).catch((err) => {
+                  console.log(err)
                     this.isLoginBtnLoading = false
                     this.isMultiStepVisible = false
                     this.notification.error({
@@ -101,6 +106,8 @@ export default {
                               title: '登录成功',
                               content: `账号：${res.data.account_signin.displayname}(${res.data.account_signin.id}) 已登录`
                           })
+                            this.loginEmailInputValue = ''
+                            this.loginPasswordInputValue = ''
                           } catch (err) {
                               this.notification.error({
                               title: '登录失败',
@@ -118,16 +125,21 @@ export default {
                     }
                     this.isLoginBtnLoading = false
                 }).catch((err) => {
+                  let errorMessage = err.message
                     if (err.message === 'MultiStepRequiredException') {
                         this.isMultiStepVisible = true
                         this.isLoginBtnLoading = false
                         return
+                    } else if (err.message === 'CFUValidationException') {
+                        errorMessage = '校验码错误，请稍后重试'
+                    } else if (err.message === 'MultiStepWrongCodeException') {
+                        errorMessage = '验证码错误'
                     }
                     console.log(err)
                     this.isLoginBtnLoading = false
                     this.notification.error({
                         title: '登录失败',
-                        content: err
+                        content: errorMessage
                     })
                 })
             } else {
