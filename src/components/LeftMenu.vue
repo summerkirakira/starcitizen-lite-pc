@@ -1,10 +1,10 @@
 <template>
-    <n-menu ref="leftMenu" :options="menuOptions" @update:value="handleUpdateValue" class="left-menu" default-value="install-localization"/>
+    <n-menu ref="leftMenu" :options="menuOptions" :on-update:value="showNotInplementedNotificaiton" class="left-menu" default-value="install-localization"/>
 </template>
   
   <script lang="ts">
   import { h, Component } from 'vue'
-  import { NIcon } from 'naive-ui'
+  import { NIcon, NAvatar } from 'naive-ui'
   import type { MenuOption } from 'naive-ui'
   import { NMenu } from 'naive-ui'
   import {
@@ -16,9 +16,26 @@
     BuildOutline as BuildIcon,
     PhonePortraitOutline as PhoneIcon
   } from '@vicons/ionicons5'
+import { useNotification } from 'naive-ui'
+import { getRefugeSettings } from '../../electron/uitils/settings'
   
   function renderIcon (icon: Component) {
+    // if (icon === PersonIcon) {
+    //   const refugeSettings = getRefugeSettings()
+    //     if (refugeSettings.currentUser != null) {
+    //       return renderAvatar('https://robertsspaceindustries.com/' + refugeSettings.currentUser.profile_image)
+    //     }
+    // }
+
     return () => h(NIcon, null, { default: () => h(icon) })
+  }
+
+  function renderAvatar (url: string) {
+    return () => h(NAvatar, {
+      src: url,
+      round: true,
+      size: 'large',
+    })
   }
   
   const menuOptions: MenuOption[] = [
@@ -74,21 +91,21 @@
         h(
           'a',
           {
-            href: '#/localization',
+            href: '#/buyback',
           },
           '我的回购'
         ),
       key: 'my-buyback',
-      disabled: true,
+      disabled: false,
       icon: renderIcon(SparklesIcon)
     },
     {
       label: () =>
         h(
-          'a',
-          {
-            href: '#/localization',
-          },
+          'span',
+          // {
+          //   href: '#/localization',
+          // },
           '实用工具'
         ),
       key: 'my-tools',
@@ -98,10 +115,10 @@
     {
       label: () =>
         h(
-          'a',
-          {
-            href: '#/localization',
-          },
+          'span',
+          // {
+          //   href: '#/localization',
+          // },
           '设置'
         ),
       key: 'my-settings',
@@ -128,6 +145,13 @@
     methods: {
         handleUpdateValue(clickValue: string[]) {
             this.selectOpition = clickValue
+        },
+        showNotInplementedNotificaiton(key: string, option: MenuOption) {
+          if (key === 'my-tools' || key === 'my-settings')
+            this.notification.warning({
+                title: '当前功能还在开发中哦',
+                content: '请耐心等待避难所PC更新'
+            })
         }
     },
     components: {
@@ -137,9 +161,11 @@
         
     },
     setup() {
+      const notification = useNotification()
         return {
                 menuOptions: menuOptions,
-                selectOpition: 'install-localization'
+                selectOpition: 'install-localization',
+                notification
             }
         },
     }

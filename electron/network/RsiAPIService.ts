@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios"
-import { BasicGraphqlPostBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
+import { BasicGraphqlPostBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherReleaseInfoResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
 import { getCookie } from "../uitils/cookies-manager"
 import { ipcRenderer } from "electron"
 import { getRefugeSettings } from "../uitils/settings"
@@ -195,4 +195,17 @@ export class RsiApiService {
         }
         
     }
+    async getReleaseInfo(channelId: string, claims: string, gameId: string, platformId: string) {
+        const postData = {
+            "channelId": channelId,
+            "claims": claims,
+            "gameId": gameId,
+            "platformId": platformId
+        }
+        const releaseInfo = await RsiPost<RsiLauncherReleaseInfoResponse>('api/launcher/v3/games/release', postData, {
+            'x-rsi-token': window.webSettings.rsi_token,
+            'x-rsi-device': window.webSettings.rsi_device,
+        })
+        return releaseInfo
+    } 
 }

@@ -4,10 +4,12 @@ import SettingsPage from './SettingsPage.vue'
 import HangarPage from './HangarPage.vue'
 import PhoneAppPage from './PhoneAppPage.vue'
 import LoginPage from './LoginPage.vue'
+import BuybackPage from './BuybackPage.vue'
 import { KeepAlive } from 'vue'
 import { useNotification } from 'naive-ui'
-import { getRefugeSettings } from '../../electron/uitils/settings'
+import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import UserProfile from './UserProfile.vue'
+import { rsiForceLogin } from '../../electron/uitils/signin'
 
 
 const routes: any = {
@@ -16,7 +18,8 @@ const routes: any = {
   '/hangar': HangarPage,
   '/app': PhoneAppPage,
   '/login': LoginPage,
-  '/user-profile': UserProfile
+  '/user-profile': UserProfile,
+  '/buyback': BuybackPage
 }
 export default {
   data() {
@@ -32,10 +35,12 @@ export default {
     }
   },
   mounted() {
+    const refugeSettings = getRefugeSettings()
     window.addEventListener('hashchange', () => {
 		  this.currentPath = window.location.hash
 		})
-    window.RsiApi.checkAccountStatus().then((res) => {
+    if (refugeSettings.currentUser != null) {
+      window.RsiApi.checkAccountStatus().then((res) => {
       if (res) {
         const refugeSettings = getRefugeSettings()
         this.notification.success({
@@ -43,12 +48,28 @@ export default {
           content: `欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`
         })
       } else {
-        this.notification.error({
-          title: '登录失败',
-          content: '请重新登录'
+        rsiForceLogin(refugeSettings.currentUser.email, refugeSettings.currentUser.password).then((res) => {
+          if (res.errors != null) {
+            this.notification.error({
+              title: '登录失败',
+              content: '请重新登录'
+            })
+            const refugeSettings = getRefugeSettings()
+            refugeSettings.currentUser = null
+            setRefugeSettings(refugeSettings)
+            return
+          }
+          const refugeSettings = getRefugeSettings()
+          refugeSettings.currentUser.rsi_token = window.webSettings.rsi_token
+          setRefugeSettings(refugeSettings)
+          this.notification.success({
+            title: '重新登录成功',
+            content: `欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`
+          })
         })
       }
     })
+    }
   }
 }
 

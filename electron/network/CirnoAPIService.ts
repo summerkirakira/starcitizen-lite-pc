@@ -1,4 +1,4 @@
-import { Announcement, LocalizationInfo, LocalizationInfoPostBody, AvailiableLocalization, ReCaptchaResponse } from './CirnoAPIProperty.d';
+import { Announcement, LocalizationInfo, LocalizationInfoPostBody, AvailiableLocalization, ReCaptchaResponse, VersionRequestPostBody, VersionResponse, ShipAlias, Translation, TranslationVersion } from './CirnoAPIProperty.d';
 import axios from "axios"
 import Store from 'electron-store'
 import fs from "fs"
@@ -94,6 +94,24 @@ export class CirnoApi {
     }
 
     async getRecaptchaToken(): Promise<ReCaptchaResponse> {
-        return fetchCirnoAPIGet<ReCaptchaResponse>('v2/reCaptchaV3')
+        return fetchCirnoAPIGet<ReCaptchaResponse>('v2/reCaptchaV3PC')
+    }
+
+    async getResourceInfo(versionRequest: VersionRequestPostBody): Promise<VersionResponse> {
+        return fetchCirnoAPIPost<VersionResponse>('version', versionRequest)
+    }
+
+    async getShipAlias(url: string): Promise<ShipAlias[]> {
+        return axios.get<ShipAlias[]>(url).then((response) => {
+            return response.data
+        })
+    }
+
+    async getTranslations(): Promise<Translation[]> {
+        return fetchCirnoAPIGet<Translation[]>('translation/all')
+    }
+
+    async getTranslationVersion(): Promise<TranslationVersion> {
+        return fetchCirnoAPIGet<TranslationVersion>('translation/version')
     }
 }

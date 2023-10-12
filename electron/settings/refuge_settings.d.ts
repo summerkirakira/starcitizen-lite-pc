@@ -32,6 +32,11 @@ export class RefugeSettings {
         email: string;
         password: string;
     } | null;
+    resourceinfo: {
+        hangarLocalizationVersion: string;
+        shipDetailVersion: string;
+        shipAliasVersion: string;
+    }
 }
 
 export class GameStartUpSettings {

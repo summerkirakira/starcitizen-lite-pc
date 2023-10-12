@@ -106,3 +106,39 @@ export interface RsiGameTokenResponse {
         token: string;
     };
 }
+
+
+export interface RsiLauncherReleaseInfoResponse {
+    code: string;
+    success: number;
+    data: {
+        channelId: string;
+        executable: string;
+        gameId: string;
+        installDir: string;
+        launchOptions: string;
+        manifest: {
+            signatures: string;
+            url: string;
+        }
+        objects: {
+            signature: string;
+            url: string;
+        }
+        p4kBase: {
+            signature: string;
+            url: string;
+        }
+        p4kBaseVerificationFile: {
+            signature: string;
+            url: string;
+        }
+        platformId: string;
+        platformURL: string;
+        serviceEndpoint: string;
+        universePort: number;
+        universeHost: string;
+        version: string;
+        versionLabel: string;
+    }
+}

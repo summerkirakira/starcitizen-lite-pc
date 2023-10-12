@@ -2,20 +2,22 @@
 import {
     NSpace,
     NDataTable,
-    NTag,
-dateEnGB
+    NTag
 } from 'naive-ui'
 import { parseHtmlToHangarItem, getStoredHangarItems, refreshHangarItems } from '../../electron/network/hangar-parser/HangarParser'
 import { HangarItem } from '../../electron/network/hangar-parser/HangarParser'
+import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName } from '../../electron/uitils/hangar-util'
 import { h } from 'vue'
 import moment from 'moment'
+import { useNotification, useLoadingBar } from 'naive-ui'
+import { getRefugeSettings } from '../../electron/uitils/settings'
 
 interface HangarItemTableData {
     id: number,
     title: string,
     num: number,
     price: number,
-    curent_price: number,
+    current_price: number,
     save: number,
     status: string[],
     date: Date,
@@ -33,13 +35,29 @@ function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
     if (item.is_upgrade) {
         status.push('可升级')
     }
+    let currentPrice = 0
+
+    if (item.is_upgrade) {
+        currentPrice += getHangarUpgradePrice(item.title)
+    } else {
+        item.contains.forEach((contain) => {
+            currentPrice += getHangarItemPrice(contain.title)
+        })
+    }
+
+    let save = 0
+    if (currentPrice > item.price) {
+        save = currentPrice - item.price
+    }
+
+
     return {
         id: item.id,
-        title: item.title,
+        title: translateHangarItemName(item.title),
         num: 1,
         price: item.price,
-        curent_price: 0,
-        save: 0,
+        current_price: currentPrice,
+        save: save,
         status: status,
         date: item.date
     }
@@ -89,15 +107,55 @@ function convertNumberToCurrency(num: number): string {
 
 
 export default {
+    setup() {
+        const notification = useNotification()
+        const loadingBar = useLoadingBar()
+        return {
+            rowProps: (row: HangarItemTableData) => {
+                return {
+                    // onClick: () => {
+                    //     console.log(row)
+                    // },
+                    // onMouseenter: () => {
+                    //     console.log(row)
+                    // }
+                }
+            },
+            notification,
+            loadingBar
+        }
+    },
     components: {
         NSpace,
         NDataTable
     },
     mounted() {
+        const refugeSettings = getRefugeSettings()
+        if (refugeSettings.currentUser == null) {
+            window.location.hash = '#/login'
+            this.notification.error({
+                title: '未登录',
+                content: '登录后才能查看机库列表哦'
+            })
+            return
+        }
         this.table_data = getCachedHangarItemTable()
-        // refreshHangarItemTable().then((table_data) => {
-        //     this.table_data = table_data
-        // })
+        // console.log(this.table_data[0])
+        this.loadingBar.start()
+        refreshHangarItemTable().then((table_data) => {
+            this.table_data = table_data
+            this.notification.success({
+                title: '刷新机库成功',
+                content: '机库列表已更新'
+            })
+            this.loadingBar.finish()
+        }).catch((err) => {
+            this.notification.error({
+                title: '刷新机库失败',
+                content: '请检查网络连接'
+            })
+            this.loadingBar.error()
+        })
     },
     methods: {
         async handleRefreshBtnClicked() {
@@ -186,11 +244,17 @@ export default {
                 },
                 {
                     title: '现价',
-                    key: 'curent_price',
+                    key: 'current_price',
                     width: '10%',
                     sorter: {
-                        compare: (a, b) => a.price - b.price,
+                        compare: (a, b) => a.current_price - b.current_price,
                         multiple: 3
+                    },
+                    render (row) {
+                        return h(
+                            'span',
+                            convertNumberToCurrency(row.current_price)
+                        )
                     }
                 },
                 {
@@ -200,6 +264,12 @@ export default {
                     sorter: {
                         compare: (a, b) => a.save - b.save,
                         multiple: 3
+                    },
+                    render (row) {
+                        return h(
+                            'span',
+                            convertNumberToCurrency(row.save)
+                        )
                     }
                 },
                 {
@@ -221,7 +291,7 @@ export default {
             ],
             rowClassName (row: HangarItemTableData) {
                 if (row.title.includes('Upgrade')) {
-                    console.log(row)
+                    // console.log(row)
                     return 'upgrade'
                 }
                 return ''
@@ -241,6 +311,7 @@ export default {
         :bordered="false"
         :single-line="false"
         :columns="columns"
+        :row-props="rowProps"
         :data="table_data"
         :row-class-name="rowClassName"
         flex-height

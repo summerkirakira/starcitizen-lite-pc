@@ -32,18 +32,20 @@ export async function startGame() {
     } else if (refugeSettings.gameSettings.currentGamePath.endsWith('EVO')) {
         channelId = 'EVO'
     }
-    const channelData = getChannelData(library, channelId)
-    const servicesEndpoint = channelData.servicesEndpoint
+    const releaseInfo = await window.RsiApi.getReleaseInfo(channelId, claim, 'SC', 'prod')
+    // const channelData = getChannelData(library, channelId)
+    console.log(releaseInfo)
+    const servicesEndpoint = releaseInfo.data.serviceEndpoint
     const token = window.webSettings.rsi_token
-    const port = 8000
+    const port = releaseInfo.data.universePort
     const nickname = refugeSettings.accountSettings.email
-    const hostname = 'public.universe.robertsspaceindustries.com'
+    const hostname = releaseInfo.data.universeHost
     const TMid = 'c5f2b100-d5db-4e61-ba76-48cd35bd20f7'
-    const executable = 'StarCitizen_Launcher.exe'
+    const executable = releaseInfo.data.executable
     const libraryFolder = path.dirname(path.dirname(refugeSettings.gameSettings.currentGamePath))
     const installDir = path.basename(path.dirname(refugeSettings.gameSettings.currentGamePath))
     const gameName = 'StarCitizen'
-    const launchOptions = '-envtag PUB --client-login-show-dialog 0 --services-config-enabled 1 --system-trace-service-enabled 1 --system-trace-env-id pub-sc-alpha-3200-8717119 --grpc-client-endpoint-override https://pub-sc-alpha-3200-8717119.test1.cloudimperiumgames.com:443'
+    const launchOptions = releaseInfo.data.launchOptions
     const startOpt: GameStartUpSettings = {
         libraryFolder: libraryFolder,
         gameName: gameName,

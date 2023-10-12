@@ -1,20 +1,21 @@
 import { Filter, chooseFile } from './electron/uitils/files';
-import { CirnoDatabase } from './electron/database/DatabaseEntities'
 import { CirnoApi } from './electron/network/CirnoAPIService'
 import { RsiApiService } from './electron/network/RsiAPIService';
 import { User } from './electron/database/DatabaseEntities';
+import { ShipAlias } from './electron/network/CirnoAPIProperty';
 
 
 declare global {
     interface Window {
       CirnoApi: CirnoApi
       RsiApi: RsiApiService
-      database: CirnoDatabase
       chooseFile: (filter: Filter) => Promise<string[]>
       appPath: string
       openDevTools: () => void
       fileManager: {
         getZipFile: (url: string, targetPath: string) => Promise<string>
+        shipAliasMap: Map<string, ShipAlias>
+        translationMap: Map<string, string>
       }
       webSettings: {
         csrfToken: string

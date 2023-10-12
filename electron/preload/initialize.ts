@@ -1,9 +1,11 @@
 import Store from 'electron-store'
 
 import { getRefugeSettings, setRefugeSettings } from '../uitils/settings'
-import { updateLocalizationSettings } from '../uitils/files';
+import { getShipAliasList, getTranslation, setShipAliasList, setTranslation, updateLocalizationSettings } from '../uitils/files';
 import { ipcRenderer } from 'electron';
 import { RsiValidateToken } from '../network/RsiAPIProperty';
+import { compareVersions } from 'compare-versions';
+import { ShipAlias, Translation } from '../network/CirnoAPIProperty';
 
 
 const store = new Store()
@@ -16,13 +18,13 @@ export function initialize() {
     initializeWebSettings()
     refreshCsrfToken()
     initializeAccountSettings()
+    initializeCliamSettings()
+    checkResourceVersion()
 }
 
 
 function checkUUID() {
     const uuid = store.get('uuid', null)
-
-    console.log(uuid)
 
     if (!uuid) {
         store.set('uuid', require('uuid').v4())
@@ -67,14 +69,17 @@ function initializeWebSettings() {
 }
 
 export function refreshCsrfToken() {
-    return ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
+    ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
         console.log("get csrf token", token)
         window.webSettings.csrfToken = token.csrf_token
         window.webSettings.rsi_token = token.rsi_token
         window.webSettings.rsi_device = token.rsi_device
         store.set('rsi_token', token.rsi_token)
         store.set('rsi_device', token.rsi_device)
-      })
+    }).catch((error) => {
+        console.log(error)
+    })
+    
 }
 
 function initializeAccountSettings() {
@@ -88,4 +93,77 @@ function initializeAccountSettings() {
         }
         setRefugeSettings(refugeSettings)
     }
+}
+
+async function initializeCliamSettings() {
+    try {
+        const refugeSettings = getRefugeSettings()
+        if (refugeSettings.gameSettings.currentGamePath != null) {
+            if (window.webSettings.claims.length == 0) {
+                window.webSettings.claims = (await window.RsiApi.getClaims()).data
+            }
+        }
+    } catch {
+        console.log("Failed to get claims")
+    }
+    
+}
+
+async function checkResourceVersion() {
+    window.fileManager.shipAliasMap = convertShipAliasListToMap(getShipAliasList())
+    window.fileManager.translationMap = convertTranslationToMap(getTranslation())
+
+    const refugeSettings = getRefugeSettings()
+    if (refugeSettings.resourceinfo == undefined) {
+        refugeSettings.resourceinfo = {
+            shipAliasVersion: '0.0.0',
+            shipDetailVersion: '0.0.0',
+            hangarLocalizationVersion: '0.0.0'
+        }
+    }
+    setRefugeSettings(refugeSettings)
+    const resourceInfo = await window.CirnoApi.getResourceInfo({
+        androidVersion: 12,
+        systemModel: 'Windows',
+        version: '0.0.0',
+    })
+    const latestShipAliasVersion = resourceInfo.shipAliasUrl.split('formatted_ship_alias.')[1].replace('.json', '')
+    if (compareVersions(latestShipAliasVersion, refugeSettings.resourceinfo.shipAliasVersion) > 0) {
+        const shipAliasList = await window.CirnoApi.getShipAlias(resourceInfo.shipAliasUrl)
+        
+        setShipAliasList(shipAliasList)
+        window.fileManager.shipAliasMap = convertShipAliasListToMap(shipAliasList)
+        const refugeSettings = getRefugeSettings()
+        refugeSettings.resourceinfo.shipAliasVersion = latestShipAliasVersion
+        setRefugeSettings(refugeSettings)
+    }
+    const translationVersion = await window.CirnoApi.getTranslationVersion()
+
+    if (compareVersions(translationVersion.version, refugeSettings.resourceinfo.hangarLocalizationVersion) > 0) {
+        const translationList = await window.CirnoApi.getTranslations()
+        window.fileManager.translationMap = convertTranslationToMap(translationList)
+        setTranslation(translationList)
+        const refugeSettings = getRefugeSettings()
+        refugeSettings.resourceinfo.hangarLocalizationVersion = translationVersion.version
+        setRefugeSettings(refugeSettings)
+    }
+}
+
+function convertShipAliasListToMap(shipAliasList: ShipAlias[]): Map<string, ShipAlias> {
+    const shipAliasMap = new Map<string, ShipAlias>()
+        for (const shipAlias of shipAliasList) {
+            shipAliasMap.set(shipAlias.name, shipAlias)
+            for (const alias of shipAlias.alias) {
+                shipAliasMap.set(alias, shipAlias)
+            }
+        }
+    return shipAliasMap
+}
+
+function convertTranslationToMap(tranlationList: Translation[]): Map<string, string> {
+    const translationMap = new Map<string, string>()
+    for (const translation of tranlationList) {
+        translationMap.set(translation.english_title, translation.title)
+    }
+    return translationMap
 }

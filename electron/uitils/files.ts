@@ -4,8 +4,11 @@ import fs from "fs";
 import { LocalizationSettings } from "../settings/refuge_settings";
 import path from "path";
 import { getRefugeSettings, setRefugeSettings } from "./settings";
-import { FileSturcture } from "../network/CirnoAPIProperty";
+import { FileSturcture, ShipAlias, Translation } from "../network/CirnoAPIProperty";
 import CryptoJS from "crypto-js";
+
+import Store from 'electron-store'
+const store = new Store()
 
 
 export class Filter {
@@ -193,4 +196,21 @@ export async function uninstallLocalization(): Promise<void> {
     const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
     writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'english')
     return fs.promises.rmdir(localizationFolderPath, { recursive: true })
+}
+
+
+export function setShipAliasList(shipAliasList: ShipAlias[]) {
+    store.set('shipAliasList', shipAliasList)
+}
+
+export function getShipAliasList(): ShipAlias[] {
+    return store.get('shipAliasList', []) as ShipAlias[]
+}
+
+export function setTranslation(translationList: Translation[]) {
+    store.set('translationList', translationList)
+}
+
+export function getTranslation(): Translation[] {
+    return store.get('translationList', []) as Translation[]
 }

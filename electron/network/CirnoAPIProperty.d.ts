@@ -51,3 +51,44 @@ export interface ReCaptchaResponse {
         token: string;
     }]
 }
+
+export interface VersionRequestPostBody {
+    version: string;
+    androidVersion: number;
+    systemModel: string;
+}
+
+export interface VersionResponse {
+    shipDetailVersion: string;
+    shipDetailUrl: string;
+    shipAliasUrl: string;
+    isVip: boolean;
+    vipExpire: number;
+    credit: number;
+    totalVipTime: number;
+}
+
+export interface ShipAlias {
+    id: number;
+    name: string;
+    alias: string[];
+    skus: [
+        {
+            title: string;
+            price: number;
+        }
+    ]
+}
+
+export interface Translation {
+    id: number;
+    product_id: number;
+    title: string;
+    excerpt: string;
+    type: string;
+    english_title: string;
+}
+
+export  interface TranslationVersion {
+    version: string
+}

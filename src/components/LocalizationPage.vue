@@ -10,6 +10,7 @@ import { updateLocalizationSettings, uninstallLocalization } from '../../electro
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
 import { startGame } from '../../electron/uitils/start-game'
 import { getUser } from '../../electron/network/user-parser/UserParser'
+import { refreshBuybackItems } from '../../electron/network/buyback-parser/BuyBackParser'
 
 const store = new Store()
 
@@ -235,19 +236,37 @@ export default {
         },
         handleStartGameClick() {
             const refugeSettings = getRefugeSettings()
-            if (refugeSettings.gameSettings == null) {
+            if (refugeSettings.gameSettings == null || refugeSettings.gameSettings.currentGamePath == null) {
+                this.notification.error({
+                    title: '错误',
+                    content: '请先选择游戏路径'
+                })
                 return
             }
-            if (refugeSettings.gameSettings.currentGamePath == null) {
+            if (refugeSettings.currentUser === null) {
+                this.notification.error({
+                    title: '未登录',
+                    content: '请先登录后再启动游戏'
+                })
                 return
             }
+            
+            try {
+                startGame()
+            } catch (err) {
+                this.notification.error({
+                    title: '游戏意外退出',
+                    content: err.message
+                })
+            }
+            
 
-            startGame()
-            window.RsiApi.rsiLauncherSignin().then((res) => {
-                console.log(res)
-            }).catch((err) => {
-                console.log(err)
-            })
+
+            // window.RsiApi.rsiLauncherSignin().then((res) => {
+            //     console.log(res)
+            // }).catch((err) => {
+            //     console.log(err)
+            // })
 
             // window.RsiApi.getClaims().then((claims) => {
             //     console.log(claims.data)
@@ -279,8 +298,8 @@ export default {
 
         <div id="game-location-selector">
             <n-dropdown :options="options" @select="handleSelect">
-            <n-button>{{ gameLocationButtonText }}</n-button>
-        </n-dropdown>
+                <n-button>{{ gameLocationButtonText }}</n-button>
+            </n-dropdown>
         </div>
         <n-button id="install-localization-button" :loading="isLocalizationButtonLoading" size="large" type="info" @click="handleLocalizationClick">{{ installButtonText }}</n-button>
         <n-button id="start-game-button" size="large" type="primary" @click="handleStartGameClick">启动游戏</n-button>
@@ -315,4 +334,4 @@ export default {
         margin-bottom: 200px;
         border: none; /* 去除iframe边框 */
     }
-</style>
+</style>../../electron/network/buyback-parser/buybackParser../../electron/network/buyback-parser/BuybackParser
