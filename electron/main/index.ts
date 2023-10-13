@@ -190,18 +190,21 @@ console.log('appVersion', appVersion);
 console.log('unpackDownloadPath', unpackDownloadPath);
 console.log('untgzPath', untgzPath);
 
-new CirnoApi().getDesktopVersion().then((version) => {
-  console.log('desktop version', version);
-  if (compareVersions(version.version, appVersion) > 0) {
-    console.log('new version found');
-    axios.get(version.download_url, {
-      responseType: 'arraybuffer',
-    }).then((response) => {
-      fs.writeFileSync(unpackDownloadPath, response.data);
-      uncompressAndUpdate();
-    });
-  }
-});
+
+if (process.platform === 'win32') {
+  new CirnoApi().getDesktopVersion().then((version) => {
+    console.log('desktop version', version);
+    if (compareVersions(version.version, appVersion) > 0) {
+      console.log('new version found');
+      axios.get(version.download_url, {
+        responseType: 'arraybuffer',
+      }).then((response) => {
+        fs.writeFileSync(unpackDownloadPath, response.data);
+        uncompressAndUpdate();
+      });
+    }
+  });
+}
 
 
 function uncompressAndUpdate() {

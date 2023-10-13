@@ -23,7 +23,7 @@
     "target": [
       "dmg"
     ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    "artifactName": "star-refuge-Mac-${version}-Installer.${ext}"
   },
   "win": {
     "icon": "./public/favicon.ico",
@@ -35,7 +35,7 @@
         ]
       }
     ],
-    "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
+    "artifactName": "star-refuge-Windows-${version}-Setup.${ext}"
   },
   "nsis": {
     "oneClick": false,
@@ -50,7 +50,7 @@
     "target": [
       "AppImage"
     ],
-    "artifactName": "${productName}-Linux-${version}.${ext}"
+    "artifactName": "star-refuge-Linux-${version}.${ext}"
   },
   "afterPack": "./scripts/afterPack.js"
 }
