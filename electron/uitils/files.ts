@@ -69,12 +69,12 @@ export const writeLocalizationInfo = () => {
     const refugeSettings = getRefugeSettings()
     // console.log(refugeSettings)
     if (refugeSettings.gameSettings.currentGamePath == null) {
-        throw new Error('No game path found')
+        throw new Error('未找到游戏目录')
     }
     const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
     const filePath = path.join(localizationFolderPath, 'version.json')
     if (!fs.existsSync(localizationFolderPath)) {
-        throw new Error('Localization folder not found')
+        throw new Error('未找到汉化目录')
     }
     writeJsonFile(filePath, refugeSettings.localizationSettings)
 }
@@ -117,10 +117,10 @@ export async function installLocalization(localizationId: string | null): Promis
     })
     const refugeSettings = getRefugeSettings()
     if (refugeSettings.gameSettings.currentGamePath == null) {
-        throw new Error('No game path found')
+        throw new Error('未找到游戏目录')
     }
     if (!fs.existsSync(refugeSettings.gameSettings.currentGamePath)) {
-        throw new Error('Localization already installed')
+        throw new Error('汉化已安装')
     }
 
     const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
@@ -202,7 +202,7 @@ export function updateLocalizationSettings() {
 export async function uninstallLocalization(): Promise<void> {
     const refugeSettings = getRefugeSettings()
     if (refugeSettings.gameSettings.currentGamePath == null) {
-        throw new Error('No game path found')
+        throw new Error('未找到游戏目录')
     }
     const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
     writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'english')
