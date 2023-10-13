@@ -218,7 +218,7 @@ function uncompressAndUpdate() {
     app.exit(0);
   } catch (err) {
     // 记录错误日志
-    console.log(err);
+    // console.log(err);
     fs.renameSync(`${untgzPath}.back`, untgzPath);
   }
 }

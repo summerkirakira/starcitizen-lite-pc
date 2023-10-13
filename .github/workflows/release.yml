@@ -15,7 +15,7 @@ on:
       - "!.github/workflows/build.yml"
 
 jobs:
-  build:
+  release:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -49,9 +49,6 @@ jobs:
         run: |
           npx rimraf "release/*/!(*.dmg)"
           - name: Cleanup Artifacts for Windows
-          if: matrix.os == 'windows-latest'
-          run: |
-            npx rimraf "release/*/!(*.exe)"
           
       - name: Cleanup Artifacts for Ubuntu
         if: matrix.os == 'ubuntu-latest'
