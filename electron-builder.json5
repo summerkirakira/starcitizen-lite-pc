@@ -46,7 +46,7 @@
     "createStartMenuShortcut": true
   },
   "linux": {
-    "icon": "./public/favicon.ico",
+    "icon": "./public/cirno.png",
     "target": [
       "AppImage"
     ],
