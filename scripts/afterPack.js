@@ -11,5 +11,5 @@ exports.default = async function(context) {
   const unpacked = path.join(targetPath, './app.asar.unpacked')
   var zip = new AdmZip()
   zip.addLocalFolder(unpacked)
-  zip.writeZip(path.join(context.outDir, 'unpacked.zip'))
+  zip.writeZip(path.join(context.outDir, `unpacked.zip`))
 }

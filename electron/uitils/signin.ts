@@ -24,7 +24,7 @@ export async function rsiLogin(email: string, password: string) {
         return loginResponse
     }
     if (loginResponse.errors[0].code === 'MultiStepRequiredException') {
-        // console.log(loginResponse)
+        console.log(loginResponse)
         window.webSettings.rsi_token = loginResponse.errors[0].extensions.details.session_id
         window.webSettings.rsi_device = loginResponse.errors[0].extensions.details.device_id
         store.set('rsi_token', window.webSettings.rsi_token)
@@ -32,12 +32,15 @@ export async function rsiLogin(email: string, password: string) {
         // refreshCsrfToken()
         throw new Error('MultiStepRequiredException')
     }
+    console.log(loginResponse)
     throw new Error(loginResponse.errors[0].code)
 }
 
 export async function rsiForceLogin(email: string, password: string) {
     window.webSettings.rsi_token = ''
     await refreshCsrfToken()
+    // delay 1000ms to avoid csrf token error
+    await new Promise(resolve => setTimeout(resolve, 1000));
     return rsiLogin(email, password)
 }
 

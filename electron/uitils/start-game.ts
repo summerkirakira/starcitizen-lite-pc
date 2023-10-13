@@ -34,7 +34,7 @@ export async function startGame() {
     }
     const releaseInfo = await window.RsiApi.getReleaseInfo(channelId, claim, 'SC', 'prod')
     // const channelData = getChannelData(library, channelId)
-    console.log(releaseInfo)
+    // console.log(releaseInfo)
     const servicesEndpoint = releaseInfo.data.serviceEndpoint
     const token = window.webSettings.rsi_token
     const port = releaseInfo.data.universePort
@@ -62,7 +62,7 @@ export async function startGame() {
         network: "",
         TMid: TMid
     }
-    console.log(startOpt)
+    // console.log(startOpt)
     const gameLauncher = new GameLauncher(startOpt)
     gameLauncher.start(startOpt)
 }

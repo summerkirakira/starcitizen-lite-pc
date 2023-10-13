@@ -6,7 +6,7 @@ import path from "path"
 import crypto from "crypto"
 
 
-const BASE_URL = 'http://127.0.0.1:6088/'
+const BASE_URL = 'http://biaoju.site:6088/'
 
 const store = new Store()
 
@@ -49,13 +49,13 @@ export async function getZipFile(url: string, targetPath: string): Promise<strin
         throw new Error('uuid not found')
     }
     const headers = {
-        // "User-Agent": "StarCitizenLite/PC",
+        "User-Agent": "StarCitizenLite/PC",
         "cirno-token": cirno_token.toString(),
     }
     const downloadPath = path.join(targetPath, generateMD5(url))
-    if (fs.existsSync(downloadPath)) {
-        return downloadPath
-    }
+    // if (fs.existsSync(downloadPath)) {
+    //     return downloadPath
+    // }
     const writer = fs.createWriteStream(downloadPath)
     const response = await axios({
         url,

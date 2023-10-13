@@ -152,7 +152,7 @@ export default {
                     console.log(err)
                     this.notification.error({
                         title: '错误',
-                        content: '汉化卸载失败'
+                        content: err.message,
                     })
                 })
             } else {
@@ -190,24 +190,21 @@ export default {
             updateLocalizationSettings()
             refugeSettings = getRefugeSettings()
             if (refugeSettings.localizationSettings != null) {
-                validateFolder(path.join(refugeSettings.gameSettings.currentGamePath, refugeSettings.localizationSettings.path), refugeSettings.localizationSettings.hashes).then((missingFiles: string[]) => {
-                    // console.log(missingFiles)
-                    if (missingFiles.length == 0) {
-                        this.isInstalled = true
-                        if (!this.isNeedUpdate) {
-                            this.installButtonText = "卸载汉化"
-                        }
-                    } else {
-                        this.notification.error({
-                            title: '错误',
-                            content: '汉化文件缺失, 请重新安装汉化'
-                        })
-                        this.isInstalled = false
-                        this.installButtonText = "安装汉化"
+                const missingFiles = validateFolder(path.join(refugeSettings.gameSettings.currentGamePath, refugeSettings.localizationSettings.path), refugeSettings.localizationSettings.hashes)
+                console.log(missingFiles)
+                if (missingFiles.length == 0) {
+                    this.isInstalled = true
+                    if (!this.isNeedUpdate) {
+                        this.installButtonText = "卸载汉化"
                     }
-                }).catch((err: any) => {
-                    console.log(err)
-                })
+                } else {
+                    this.notification.error({
+                        title: '错误',
+                        content: '汉化文件缺失, 请重新安装汉化'
+                    })
+                    this.isInstalled = false
+                    this.installButtonText = "安装汉化"
+                }
                 
             } else {
                 this.isInstalled = false

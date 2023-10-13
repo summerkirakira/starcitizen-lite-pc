@@ -55,6 +55,7 @@ function writeJsonFile (filePath: string, json: any) {
 }
 
 function writeLanguageFile (filePath: string, language: string) {
+    console.log(`write language file ${filePath}, ${language}`)
     fs.writeFileSync(filePath, `g_language=${language}`)
 }
 
@@ -66,7 +67,7 @@ export const readLocalizationInfo = (filePath: string): LocalizationSettings => 
 
 export const writeLocalizationInfo = () => {
     const refugeSettings = getRefugeSettings()
-    console.log(refugeSettings)
+    // console.log(refugeSettings)
     if (refugeSettings.gameSettings.currentGamePath == null) {
         throw new Error('No game path found')
     }
@@ -85,22 +86,23 @@ export function loadLocalizationInfoFromFile(path: string): LocalizationSettings
     return readLocalizationInfo(path)
 }
 
-async function calculateFileHash(filePath): Promise<string> {
-    const data = await fs.promises.readFile(filePath);
+function calculateFileHash(filePath): string {
+    const data = fs.readFileSync(filePath);
     const hash = CryptoJS.MD5(CryptoJS.lib.WordArray.create(data));
   
     return hash.toString();
   }
 
-export async function validateFolder(folder_path: string, files: FileSturcture[]): Promise<string[]> {
+export function validateFolder(folder_path: string, files: FileSturcture[]): string[] {
     const missingFiles = []
+    // console.log(files)
     for (const file of files) {
         const filePath = path.join(folder_path, file.name)
         if (!fs.existsSync(filePath)) {
             missingFiles.push(file.name)
             continue
         }
-        const fileHash = await calculateFileHash(filePath)
+        const fileHash = calculateFileHash(filePath)
         if (fileHash != file.md5) {
             missingFiles.push(file.name)
         }
@@ -121,13 +123,19 @@ export async function installLocalization(localizationId: string | null): Promis
         throw new Error('Localization already installed')
     }
 
+    const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
+
     const localizationPath = path.join(refugeSettings.gameSettings.currentGamePath, localizationInfo.path)
     try {
+        if (fs.existsSync(localizationFolderPath)) {
+            fs.rmdirSync(localizationFolderPath, { recursive: true })
+        }
         fs.mkdirSync(localizationPath, { recursive: true })
     } catch (e) {
-        throw new Error('缺少对游戏目录的写权限，请使用管理员权限打开避难所')
+        throw new Error(`缺少对游戏目录的写权限或文件被占用，请使用管理员权限打开避难所并关闭其他占用汉化文件的程序（如文件夹窗口）也可尝试手动删除${localizationFolderPath}目录`)
     }
-    const missing_files = await validateFolder(localizationPath, localizationInfo.hashes)
+    // console.log(localizationInfo)
+    const missing_files = validateFolder(localizationPath, localizationInfo.hashes)
     let downloadGlobalFlag = false
     let downloadFontFlag = false
     if (missing_files.length == 0) {
@@ -142,6 +150,7 @@ export async function installLocalization(localizationId: string | null): Promis
         }
         setRefugeSettings(refugeSettings)
         writeLocalizationInfo()
+        writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'chinese_(simplified)')
         return
     }
     for (const file of missing_files) {
@@ -161,9 +170,10 @@ export async function installLocalization(localizationId: string | null): Promis
         console.log("find font missing")
         extractZipToPath(zipPath, localizationPath)
     }
-    const validFiles = await validateFolder(localizationPath, localizationInfo.hashes)
+    const validFiles = validateFolder(localizationPath, localizationInfo.hashes)
+    // console.log(validFiles)
     if (validFiles.length != 0) {
-        throw new Error('Failed to install localization')
+        throw new Error('哈希校验失败，请重新安装')
     }
     refugeSettings.localizationSettings = {
         localizaitonId: localizationInfo.localization_id,
@@ -175,6 +185,7 @@ export async function installLocalization(localizationId: string | null): Promis
         path: localizationInfo.path,
     }
     setRefugeSettings(refugeSettings)
+    // console.log(refugeSettings)
     writeLocalizationInfo()
     writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'chinese_(simplified)')
 }
@@ -195,7 +206,14 @@ export async function uninstallLocalization(): Promise<void> {
     }
     const localizationFolderPath = path.join(refugeSettings.gameSettings.currentGamePath, 'data')
     writeLanguageFile(path.join(refugeSettings.gameSettings.currentGamePath, 'user.cfg'), 'english')
-    return fs.promises.rmdir(localizationFolderPath, { recursive: true })
+    if (fs.existsSync(localizationFolderPath)) {
+        try {
+            fs.rmdirSync(localizationFolderPath, { recursive: true })
+        } catch (e) {
+            throw new Error(`缺少对游戏目录的写权限或文件被占用，请使用管理员权限打开避难所并关闭其他占用汉化文件的程序（如文件夹窗口）也可尝试手动删除${localizationFolderPath}目录`)
+        }
+        
+    }
 }
 
 

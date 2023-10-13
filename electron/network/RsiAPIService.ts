@@ -11,7 +11,7 @@ axios.defaults.withCredentials = true;
 const RsiAixoInstance = axios.create()
 
 RsiAixoInstance.interceptors.request.use((config) => {
-    console.log('AXIO HEADERS', config.headers)
+    // console.log('AXIO HEADERS', config.headers)
     return config
 })
 
@@ -83,9 +83,13 @@ export async function getCsrfToken(rsi_token: string, rsi_device: string): Promi
     let new_rsi_token = ''
     if (response.headers['set-cookie']) {
         console.log('Resetting Rsi-Token',response.headers['set-cookie'])
-        new_rsi_token = response.headers['set-cookie'][0].split(';')[0].split('=')[1]
+        for (const set_cookie of response.headers['set-cookie']) {
+            if (set_cookie.startsWith('Rsi-Token')) {
+                new_rsi_token = set_cookie.split(';')[0].split('=')[1]
+                break
+            }
+        }
         cookie += ` Rsi-Token=${new_rsi_token};`;
-        // console.log(cookie)
         const res = await axios.get<string>(BASE_URL, { headers: { 'Cookie': cookie } })
         // console.log(res.headers)
         const csrfToken = res.data.match(regex)

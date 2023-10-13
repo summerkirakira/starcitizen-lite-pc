@@ -18,7 +18,7 @@ export function initialize() {
     initializeWebSettings()
     refreshCsrfToken()
     initializeAccountSettings()
-    initializeCliamSettings()
+    // initializeCliamSettings()
     checkResourceVersion()
 }
 
@@ -70,18 +70,20 @@ function initializeWebSettings() {
     }
     window.webSettings = {
         csrfToken: '',
-        rsi_token: rsi_divice,
-        rsi_device: rsi_token,
+        rsi_token: rsi_token,
+        rsi_device: rsi_divice,
         claims: '',
     }
+    console.log('initializeWebSettings', window.webSettings)
 }
 
 export function refreshCsrfToken() {
     ipcRenderer.invoke('get-csrf-token', window.webSettings.rsi_device, window.webSettings.rsi_token).then((token: RsiValidateToken) => {
-        console.log("get csrf token", token)
+        // console.log("get csrf token", token)
         window.webSettings.csrfToken = token.csrf_token
         window.webSettings.rsi_token = token.rsi_token
         window.webSettings.rsi_device = token.rsi_device
+        console.log(token)
         store.set('rsi_token', token.rsi_token)
         store.set('rsi_device', token.rsi_device)
     }).catch((error) => {

@@ -19,12 +19,14 @@
     "dist-electron"
   ],
   "mac": {
+    "icon": "./public/favicon.ico",
     "target": [
       "dmg"
     ],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
+    "icon": "./public/favicon.ico",
     "target": [
       {
         "target": "nsis",
@@ -42,6 +44,7 @@
     "deleteAppDataOnUninstall": false
   },
   "linux": {
+    "icon": "./public/favicon.ico",
     "target": [
       "AppImage"
     ],

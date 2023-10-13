@@ -64,6 +64,7 @@ async function createWindow() {
     },
   })
 
+
   if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
     win.loadURL(url)
     // Open devTool if the app is not packaged
@@ -154,7 +155,7 @@ ipcMain.handle('open-win', (_, arg) => {
 })
 
 ipcMain.handle('get-csrf-token', (event, rsi_device: string, rsi_token: string): Promise<RsiValidateToken> => {
-  console.log("getting csrf token")
+  // console.log("getting csrf token")
   return getCsrfToken(rsi_token, rsi_device)
 })
 
@@ -182,7 +183,7 @@ const unpackDownloadPath = path.join(appPath, 'app.asar.unpacked.zip');
 
 const untgzPath = path.join(appPath, 'app.asar.unpacked');
 
-const appVersion = '1.0.0';
+const appVersion = '1.0.3';
 
 console.log('appPath', appPath);
 console.log('appVersion', appVersion);
