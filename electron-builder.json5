@@ -10,7 +10,7 @@
     "./dist"
     ],
   "compression": "maximum",
-  "productName": "StarRefuge",
+  "productName": "星河避难所",
   "directories": {
     "output": "release/${version}"
   },
@@ -19,7 +19,7 @@
     "dist-electron"
   ],
   "mac": {
-    "icon": "./public/favicon.ico",
+    "icon": "./public/cirno.png",
     "target": [
       "dmg"
     ],
@@ -41,7 +41,9 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
+    "deleteAppDataOnUninstall": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
   },
   "linux": {
     "icon": "./public/favicon.ico",
