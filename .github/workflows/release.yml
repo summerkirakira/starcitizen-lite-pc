@@ -48,7 +48,6 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           npx rimraf "release/*/!(*.dmg)"
-          - name: Cleanup Artifacts for Windows
           
       - name: Cleanup Artifacts for Ubuntu
         if: matrix.os == 'ubuntu-latest'
