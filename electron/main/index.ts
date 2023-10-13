@@ -193,7 +193,7 @@ console.log('untgzPath', untgzPath);
 
 if (process.platform === 'win32') {
   new CirnoApi().getDesktopVersion().then((version) => {
-    console.log('desktop version', version);
+    // console.log('desktop version', version);
     if (compareVersions(version.version, appVersion) > 0) {
       console.log('new version found');
       axios.get(version.download_url, {
