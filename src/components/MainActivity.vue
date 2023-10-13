@@ -11,6 +11,9 @@ import { useNotification } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import UserProfile from './UserProfile.vue'
 import { rsiForceLogin } from '../../electron/uitils/signin'
+import Store from 'electron-store'
+
+const store = new Store()
 
 
 const routes: any = {
@@ -37,6 +40,16 @@ export default {
     }
   },
   mounted() {
+
+    const recently_update = store.get('recently_update', null)
+    if (recently_update !== null) {
+      this.notification.success({
+        title: '更新成功',
+        content: `星河避难所已更新到版本: ${recently_update}`
+      })
+      store.set('recently_update', null)
+    }
+
     const refugeSettings = getRefugeSettings()
     window.addEventListener('hashchange', () => {
 		  this.currentPath = window.location.hash

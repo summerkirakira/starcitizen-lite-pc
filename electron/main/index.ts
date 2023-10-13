@@ -11,6 +11,9 @@ import fse from 'fs-extra'
 import path from 'path'
 import { compareVersions } from 'compare-versions'
 import axios from 'axios'
+import Store from 'electron-store'
+
+const store = new Store()
 
 // The built directory structure
 //
@@ -64,6 +67,9 @@ async function createWindow() {
     },
   })
 
+  // win.on("ready-to-show", () => {
+  //   win.webContents.openDevTools();
+  // });
 
   if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
     win.loadURL(url)
@@ -154,6 +160,7 @@ ipcMain.handle('open-win', (_, arg) => {
   }
 })
 
+
 ipcMain.handle('get-csrf-token', (event, rsi_device: string, rsi_token: string): Promise<RsiValidateToken> => {
   // console.log("getting csrf token")
   return getCsrfToken(rsi_token, rsi_device)
@@ -177,18 +184,19 @@ ipcMain.handle('rsi-api-get', (event, url: string, headers: any): Promise<any> =
 
 // Auto Update
 
-const appPath = path.dirname(app.getAppPath());
+const appPath = app.getAppPath();
 
 const unpackDownloadPath = path.join(appPath, 'app.asar.unpacked.zip');
 
-const untgzPath = path.join(appPath, 'app.asar.unpacked');
+const distFolderPath = path.join(appPath, 'dist');
+const distElectronFolderPath = path.join(appPath, 'dist-electron');
 
-const appVersion = '1.0.3';
+const appVersion = '1.0.5';
 
 console.log('appPath', appPath);
 console.log('appVersion', appVersion);
 console.log('unpackDownloadPath', unpackDownloadPath);
-console.log('untgzPath', untgzPath);
+console.log('untgzPath', distFolderPath);
 
 
 if (process.platform === 'win32') {
@@ -200,25 +208,29 @@ if (process.platform === 'win32') {
         responseType: 'arraybuffer',
       }).then((response) => {
         fs.writeFileSync(unpackDownloadPath, response.data);
-        uncompressAndUpdate();
+        uncompressAndUpdate(version.version);
       });
     }
   });
 }
 
 
-function uncompressAndUpdate() {
+function uncompressAndUpdate(version: string) {
   // 先备份当前的 app.asar.unpacked 目录
-  fse.renameSync(untgzPath, `${untgzPath}.back`);
+  fse.renameSync(distFolderPath, `${distFolderPath}.back`);
+  fse.renameSync(distElectronFolderPath, `${distElectronFolderPath}.back`);
   try {
-    extractZipToPath(unpackDownloadPath, untgzPath);
-    fse.removeSync(`${untgzPath}.back`);
+    extractZipToPath(unpackDownloadPath, appPath);
+    fse.removeSync(`${distFolderPath}.back`);
+    fse.removeSync(`${distElectronFolderPath}.back`);
     fse.removeSync(unpackDownloadPath);
+    store.set('recently_update', version);
     app.relaunch();
     app.exit(0);
   } catch (err) {
     // 记录错误日志
     console.log(err);
-    fs.renameSync(`${untgzPath}.back`, untgzPath);
+    fs.renameSync(`${distFolderPath}.back`, distFolderPath);
+    fs.renameSync(`${distElectronFolderPath}.back`, distElectronFolderPath);
   }
 }

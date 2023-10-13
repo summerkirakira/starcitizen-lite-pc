@@ -39,8 +39,8 @@ export async function rsiLogin(email: string, password: string) {
 export async function rsiForceLogin(email: string, password: string) {
     window.webSettings.rsi_token = ''
     await refreshCsrfToken()
-    // delay 1000ms to avoid csrf token error
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // delay 4000ms to avoid csrf token error
+    await new Promise(resolve => setTimeout(resolve, 4000));
     return rsiLogin(email, password)
 }
 

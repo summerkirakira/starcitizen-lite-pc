@@ -4,7 +4,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "vip.kirakira.refuge-pc",
-  "asar": true,
+  "asar": false,
   "asarUnpack": [
     "./dist-electron",
     "./dist"
@@ -19,7 +19,7 @@
     "dist-electron"
   ],
   "mac": {
-    "icon": "./public/cirno.png",
+    "icon": "./image/cirno.png",
     "target": [
       "dmg"
     ],

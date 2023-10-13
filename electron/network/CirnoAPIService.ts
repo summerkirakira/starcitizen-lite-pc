@@ -6,7 +6,7 @@ import path from "path"
 import crypto from "crypto"
 
 
-const BASE_URL = 'http://biaoju.site:6088/'
+const BASE_URL = 'http://127.0.0.1:6088/'
 
 const store = new Store()
 
