@@ -2,28 +2,42 @@
 import {
     NSpace,
     NDataTable,
-    NTag
+    NTag,
+    NImage
 } from 'naive-ui'
-import { parseHtmlToHangarItem, getStoredHangarItems, refreshHangarItems } from '../../electron/network/hangar-parser/HangarParser'
+import { getStoredHangarItems, refreshHangarItems } from '../../electron/network/hangar-parser/HangarParser'
 import { HangarItem } from '../../electron/network/hangar-parser/HangarParser'
 import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName } from '../../electron/uitils/hangar-util'
 import { h } from 'vue'
 import moment from 'moment'
-import { useNotification, useLoadingBar } from 'naive-ui'
+import { useNotification, useLoadingBar, useMessage } from 'naive-ui'
 import { getRefugeSettings } from '../../electron/uitils/settings'
 import { NButton, NIcon } from 'naive-ui'
 import { RefreshOutline as RefreshIcon } from '@vicons/ionicons5'
+import HangarPopupMenu from './HangarPopupMenu.vue'
 
-interface HangarItemTableData {
+export interface HangarItemTableData {
     id: number,
     title: string,
+    english_title: string,
+    image: string,
     num: number,
     price: number,
     current_price: number,
     save: number,
     status: string[],
     date: Date,
-    rowClassName?: string
+    rowClassName?: string,
+    raw: HangarItem
+}
+
+function renderDataTableTitle(row: HangarItemTableData) {
+    return h(
+        HangarPopupMenu,
+        {
+            hangarItem: row
+        }
+    )
 }
 
 function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
@@ -56,12 +70,15 @@ function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
     return {
         id: item.id,
         title: translateHangarItemName(item.title),
+        english_title: item.title,
+        image: item.image,
         num: 1,
         price: item.price,
         current_price: currentPrice,
         save: save,
         status: status,
-        date: item.date
+        date: item.date,
+        raw: item
     }
 }
 
@@ -112,19 +129,18 @@ export default {
     setup() {
         const notification = useNotification()
         const loadingBar = useLoadingBar()
+        const message = useMessage()
         return {
             rowProps: (row: HangarItemTableData) => {
                 return {
-                    // onClick: () => {
-                    //     console.log(row)
-                    // },
                     // onMouseenter: () => {
                     //     console.log(row)
                     // }
                 }
             },
             notification,
-            loadingBar
+            loadingBar,
+            message
         }
     },
     components: {
@@ -132,7 +148,8 @@ export default {
         NDataTable,
         NButton,
         NIcon,
-        RefreshIcon
+        RefreshIcon,
+        HangarPopupMenu
     },
     mounted() {
         const refugeSettings = getRefugeSettings()
@@ -152,10 +169,10 @@ export default {
             this.loadingBar.start()
             refreshHangarItemTable().then((table_data) => {
                 this.table_data = table_data
-                this.notification.success({
-                    title: '刷新机库成功',
-                    content: '机库列表已更新'
-                })
+                this.message.success(
+                    "机库刷新成功",
+                    { duration: 5000 }
+                )
                 this.loadingBar.finish()
             }).catch((err) => {
                 this.notification.error({
@@ -164,17 +181,38 @@ export default {
                 })
                 this.loadingBar.error()
             })
-        },
+        }
         
     },
     data() {
         return {
             columns: [
                 {
+                    title: '图片',
+                    key: 'image',
+                    width: '12%',
+                    render (row) {
+                        let image = row.image
+                        if (image.startsWith('/')) {
+                            image = 'https://robertsspaceindustries.com' + image
+                        }
+                        return h(
+                            'img',
+                            {
+                                src: image,
+                                style: {
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '5px'
+                                }
+                            }
+                        )
+                    }
+                },
+                {
                     title: '名称',
                     key: 'title',
                     width: '20%',
-                    className: 'title',
                     filterOptions: [
                         {
                             label: '可升级',
@@ -191,6 +229,9 @@ export default {
                     ],
                     filter (value, row) {
                         return ~row.address.indexOf(value)
+                    },
+                    render (row) {
+                        return renderDataTableTitle(row)
                     }
                 },
                 {
@@ -213,7 +254,7 @@ export default {
                                 tag_type = 'info'
                             }
                             return h(
-                                NTag,
+                                NTag as any,
                                 {
                                     style: {
                                         marginRight: '6px'
@@ -292,7 +333,7 @@ export default {
                     }
                     
                 },
-            ],
+            ] as any,
             rowClassName (row: HangarItemTableData) {
                 if (row.title.includes('Upgrade')) {
                     // console.log(row)

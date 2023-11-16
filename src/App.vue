@@ -2,7 +2,7 @@
 import LeftMenu from './components/LeftMenu.vue'
 import MainActivity from './components/MainActivity.vue'
 
-import { NConfigProvider, GlobalThemeOverrides, NNotificationProvider, NLoadingBarProvider } from 'naive-ui'
+import { NConfigProvider, GlobalThemeOverrides, NNotificationProvider, NLoadingBarProvider, NMessageProvider } from 'naive-ui'
 
 const themeOverrides: GlobalThemeOverrides = {
    common: {
@@ -15,7 +15,8 @@ const themeOverrides: GlobalThemeOverrides = {
 
 <template>
   <n-config-provider :theme-overrides="themeOverrides" class="app-container">
-    <n-notification-provider>
+    <n-message-provider>
+      <n-notification-provider>
       <n-loading-bar-provider>
         <div class="main-body">
           <LeftMenu class="left-column" />
@@ -25,6 +26,7 @@ const themeOverrides: GlobalThemeOverrides = {
         </div>
       </n-loading-bar-provider>
     </n-notification-provider>
+    </n-message-provider>
   </n-config-provider>
 </template>
 

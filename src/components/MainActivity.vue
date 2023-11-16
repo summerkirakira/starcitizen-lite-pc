@@ -7,7 +7,7 @@ import LoginPage from './LoginPage.vue'
 import BuybackPage from './BuybackPage.vue'
 import BugReportPage from './BugReportPage.vue'
 import { KeepAlive } from 'vue'
-import { useNotification } from 'naive-ui'
+import { useNotification, useMessage } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import UserProfile from './UserProfile.vue'
 import { rsiForceLogin } from '../../electron/uitils/signin'
@@ -29,9 +29,11 @@ const routes: any = {
 export default {
   data() {
     const notification = useNotification()
+    const message = useMessage()
     return {
       currentPath: window.location.hash,
-      notification
+      notification,
+      message
     }
   },
   computed: {
@@ -58,10 +60,10 @@ export default {
       window.RsiApi.checkAccountStatus().then((res) => {
       if (res) {
         const refugeSettings = getRefugeSettings()
-        this.notification.success({
-          title: '登录成功',
-          content: `欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`
-        })
+        this.message.success(
+          `登录成功...欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`,
+          { duration: 5000 }
+        )
       } else {
         rsiForceLogin(refugeSettings.currentUser.email, refugeSettings.currentUser.password).then((res) => {
           if (res.errors != null) {
@@ -77,10 +79,10 @@ export default {
           const refugeSettings = getRefugeSettings()
           refugeSettings.currentUser.rsi_token = window.webSettings.rsi_token
           setRefugeSettings(refugeSettings)
-          this.notification.success({
-            title: '重新登录成功',
-            content: `欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`
-          })
+          this.message.success(
+            `重新登录成功...欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`,
+            { duration: 5000 }
+          )
         }).catch((err) => {
           this.notification.error({
             title: '自动登录失败',
