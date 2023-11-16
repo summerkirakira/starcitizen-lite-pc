@@ -52,7 +52,6 @@ function parseStringToHtml(html: string): HTMLElement {
 }
 
 function parsePrice(price: string): number {
-
     if (price.includes('USD')) {
         return parseFloat(price.replace('USD', '').replace(',', '').replace('$', '').trim())
     } else {

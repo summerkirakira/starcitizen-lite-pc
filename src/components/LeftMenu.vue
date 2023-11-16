@@ -18,7 +18,6 @@
     ChatboxEllipsesOutline as ChatboxIcon
   } from '@vicons/ionicons5'
 import { useNotification } from 'naive-ui'
-import { getRefugeSettings } from '../../electron/uitils/settings'
   
   function renderIcon (icon: Component) {
     // if (icon === PersonIcon) {
@@ -45,7 +44,7 @@ import { getRefugeSettings } from '../../electron/uitils/settings'
         h(
           'a',
           {
-            href: '#/login',
+            href: '#/user-profile',
           },
           '账号信息'
         ),
