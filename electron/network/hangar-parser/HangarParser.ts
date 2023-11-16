@@ -6,7 +6,8 @@ export interface ContainItem {
     image: string,
     title: string,
     type: string,
-    manufacturer: string
+    manufacturer: string,
+    currentPrice?: number,
 }
 
 export interface UpgradeDetail {

@@ -23,6 +23,25 @@ function getFullUpgradeName(itemName: string): string[] {
     })
 }
 
+export function translateHangerItemType(itemName: string): string {
+    switch (itemName) {
+        case "Hanger decoration": 
+            return "机库装饰"
+        case "Ship":
+            return "舰船"
+        case "Hangar pass":
+            return "机库通行证"
+        case "Component":
+            return "组件"
+        case "FPS Equipment":
+            return "FPS装备"
+        case "Skin":
+            return "涂装"
+        case "Hangar decoration":
+            return "机库装饰"
+    }
+}
+
 export function getHangarItemPrice(itemName: string): number {
     if (window.fileManager.shipAliasMap.has(itemName)) {
         return getHighestShipPrice(window.fileManager.shipAliasMap.get(itemName))

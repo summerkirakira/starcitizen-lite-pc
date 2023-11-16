@@ -3,11 +3,12 @@ import {
     NSpace,
     NDataTable,
     NTag,
-    NImage
+    NImage,
+c
 } from 'naive-ui'
 import { getStoredHangarItems, refreshHangarItems } from '../../electron/network/hangar-parser/HangarParser'
 import { HangarItem } from '../../electron/network/hangar-parser/HangarParser'
-import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName } from '../../electron/uitils/hangar-util'
+import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName, translateHangerItemType } from '../../electron/uitils/hangar-util'
 import { h } from 'vue'
 import moment from 'moment'
 import { useNotification, useLoadingBar, useMessage } from 'naive-ui'
@@ -58,6 +59,7 @@ function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
     } else {
         item.contains.forEach((contain) => {
             currentPrice += getHangarItemPrice(contain.title)
+            contain.currentPrice = getHangarItemPrice(contain.title)
         })
     }
 
@@ -66,12 +68,34 @@ function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
         save = currentPrice - item.price
     }
 
+    let image = item.image
+
+    if (image.startsWith('/')) {
+        image = 'https://robertsspaceindustries.com' + image
+        item.image = image
+    }
+
+    item.contains.forEach((contain) => {
+        if (contain.image.startsWith('/')) {
+            contain.image = 'https://robertsspaceindustries.com' + contain.image
+        }
+        contain.title = translateHangarItemName(contain.title)
+        contain.type = translateHangerItemType(contain.type)
+    })
+
+    const translated_also_contains: string[] = []
+
+    item.also_contains.forEach((also_contain) => {
+        translated_also_contains.push(translateHangarItemName(also_contain))
+    })
+    item.also_contains = translated_also_contains
+
 
     return {
         id: item.id,
         title: translateHangarItemName(item.title),
         english_title: item.title,
-        image: item.image,
+        image: image,
         num: 1,
         price: item.price,
         current_price: currentPrice,
@@ -105,6 +129,7 @@ function convertHangarItemsToTableData(items: HangarItem[]): HangarItemTableData
     for (const item of map.values()) {
         result.push(item)
     }
+    console.log(result)
     return result
 }
 
@@ -196,6 +221,7 @@ export default {
                         if (image.startsWith('/')) {
                             image = 'https://robertsspaceindustries.com' + image
                         }
+                        // console.log(image)
                         return h(
                             'img',
                             {
