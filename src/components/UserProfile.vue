@@ -20,7 +20,6 @@ import {
 import { PieChart, LineChart } from 'echarts/charts';
 import { LabelLayout, UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { initialize } from '../../electron/preload/initialize';
 
 
 export default {
@@ -83,22 +82,8 @@ export default {
             LineChart,
             UniversalTransition
         ]);
-        let chartDom = document.getElementById('spent_echarts_container');
-        let billingChart = echarts.init(chartDom);
-        let option = getBillingsEchartOptions(getStoredBillingItems());
-        billingChart.setOption(option);
-
-        let timeChartDom = document.getElementById('time_echarts_container');
-        let timeChart = echarts.init(timeChartDom);
-        let timeOption = getTimeBillingEchartOptions(getStoredBillingItems());
-        timeChart.setOption(timeOption);
+        this.createCharts(true)
         this.refreshUserData()
-        refreshBillingItems().then((billingItems: BillingItem[]) => {
-            let option = getBillingsEchartOptions(billingItems);
-            billingChart.setOption(option);
-            let timeOption = getTimeBillingEchartOptions(billingItems);
-            timeChart.setOption(timeOption);
-        })
     },
     methods: {
         handleSelect() {
@@ -110,6 +95,7 @@ export default {
         updateUser(value: string) {
             this.isUserChooseModalVisible = false
             let refuge_settings = getRefugeSettings()
+            this.createCharts()
             if (value == 'add_new_user') {
                 refuge_settings.currentUser = null
                 setRefugeSettings(refuge_settings)
@@ -127,6 +113,9 @@ export default {
                         setRefugeSettings(refuge_settings)
                         applyUserSettings()
                         this.refresh_key += 1
+                        this.$nextTick(() => {
+                            this.createCharts(true)
+                        })
                         return
                     }
                 })
@@ -135,11 +124,33 @@ export default {
         refreshUserData() {
             const refugeSettings = getRefugeSettings()
             getUser(this.currentUser.id, this.currentUser.email, this.currentUser.password).then((user) => {
+                console.log(user)
                 refugeSettings.currentUser = user
                 setRefugeSettings(refugeSettings)
                 this.currentUser = user
                 this.refresh_key += 1
+                this.createCharts()
             })
+        },
+        createCharts(needRefresh: boolean = false) {
+            let chartDom = document.getElementById('spent_echarts_container');
+            let billingChart = echarts.init(chartDom);
+            let option = getBillingsEchartOptions(getStoredBillingItems());
+            billingChart.setOption(option);
+
+            let timeChartDom = document.getElementById('time_echarts_container');
+            let timeChart = echarts.init(timeChartDom);
+            let timeOption = getTimeBillingEchartOptions(getStoredBillingItems());
+            timeChart.setOption(timeOption);
+            if (needRefresh) {
+                    refreshBillingItems().then((billingItems: BillingItem[]) => {
+                        console.log(billingItems)
+                    let option = getBillingsEchartOptions(billingItems);
+                    billingChart.setOption(option);
+                    let timeOption = getTimeBillingEchartOptions(billingItems);
+                    timeChart.setOption(timeOption);
+                })
+            }
         }
     },
     components: {
@@ -197,8 +208,8 @@ export default {
                         <p>{{ `${currentUser.hangar_value / 100} USD` }}</p>
                     </n-space>
                     <n-space justify="space-between">
-                        <p>消费额/信用点</p>
-                        <p>{{ `${currentUser.total_spent} USD` }}</p>
+                        <p>消费额 / 当前信用点</p>
+                        <p>{{ `${currentUser.total_spent / 100} USD / ${currentUser.usd} USD` }}</p>
                     </n-space>
                     <n-space justify="space-between">
                         <p>UEC</p>
@@ -213,8 +224,8 @@ export default {
                         <p>{{ `${currentUser.referral_code}` }}</p>
                     </n-space>
                     <n-space justify="space-between">
-                        <p>邀请人数</p>
-                        <p>{{ `${currentUser.referral_count}/${currentUser.referral_prospects}人` }}</p>
+                        <p>邀请人数 / 未购买游戏包人数</p>
+                        <p>{{ `${currentUser.referral_count} / ${currentUser.referral_prospects}人` }}</p>
                     </n-space>
                 </div>
             </div>

@@ -10,7 +10,7 @@ import { KeepAlive } from 'vue'
 import { useNotification, useMessage } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import UserProfile from './UserProfile.vue'
-import { rsiForceLogin } from '../../electron/uitils/signin'
+import { applyUserSettings, rsiForceLogin } from '../../electron/uitils/signin'
 import Store from 'electron-store'
 
 const store = new Store()
@@ -58,6 +58,7 @@ export default {
 		})
     if (refugeSettings.currentUser != null) {
       window.RsiApi.checkAccountStatus().then((res) => {
+        console.log(res)
       if (res) {
         const refugeSettings = getRefugeSettings()
         this.message.success(
@@ -79,6 +80,7 @@ export default {
           const refugeSettings = getRefugeSettings()
           refugeSettings.currentUser.rsi_token = window.webSettings.rsi_token
           setRefugeSettings(refugeSettings)
+          applyUserSettings()
           this.message.success(
             `重新登录成功...欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`,
             { duration: 5000 }
@@ -93,6 +95,14 @@ export default {
           setRefugeSettings(refugeSettings)
         })
       }
+    }).catch((err) => {
+      this.notification.error({
+        title: '自动登录失败',
+        content: `请重新登录 (${err.message}})`
+      })
+      const refugeSettings = getRefugeSettings()
+      refugeSettings.currentUser = null
+      setRefugeSettings(refugeSettings)
     })
     }
   }

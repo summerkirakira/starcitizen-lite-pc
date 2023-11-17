@@ -37,9 +37,8 @@ export function getBillingsEchartOptions(billingItem: BillingItem[]) {
               show: false
             },
             data: [
-            //   { value: 1548, name: 'Search Engine' },
-            //   { value: 775, name: 'Direct' },
-            //   { value: 679, name: 'Marketing', selected: true }
+              { value: 1548, name: '现金' },
+              { value: 775, name: '信用点' },
             ]
           },
           {
@@ -87,14 +86,11 @@ export function getBillingsEchartOptions(billingItem: BillingItem[]) {
             //   }
             // },
             data: [
-            //   { value: 1048, name: 'Baidu' },
-            //   { value: 335, name: 'Direct' },
-            //   { value: 310, name: 'Email' },
-            //   { value: 251, name: 'Google' },
-            //   { value: 234, name: 'Union Ads' },
-            //   { value: 147, name: 'Bing' },
-            //   { value: 135, name: 'Video Ads' },
-            //   { value: 102, name: 'Others' }
+              { value: 1548, name: '升级包' },
+              { value: 775, name: '涂装' },
+              { value: 679, name: '订阅'},
+              { value: 1548, name: '舰船' },
+              { value: 775, name: '其他' },
             ]
           }
         ]
@@ -119,22 +115,23 @@ export function getBillingsEchartOptions(billingItem: BillingItem[]) {
             } else if (billing_item.name.includes('Subscrib')) {
                 total_subscription_price += billing_item.price
             } else {
+                if (isNaN(billing_item.price)) {
+                  console.log(billing_item)
+                  continue
+                }
                 total_other_price += billing_item.price
             }
         }
     })
-    option.series[0].data = [
-        { value: total_credit_used / 100, name: '信用点' },
-        { value: total_cash_used / 100, name: '现金' }
-    ]
-    option.series[1].data = [
-        { value: total_upgrade_price / 100, name: '升级包' },
-        { value: total_skin_price / 100, name: '涂装' },
-        { value: total_subscription_price / 100, name: '订阅' },
-        { value: total_ship_price / 100, name: '舰船' },
-        { value: total_other_price / 100, name: '其他' } 
-    ]
+    option.series[0].data[0].value = total_cash_used / 100
+    option.series[0].data[1].value = total_credit_used / 100
+    option.series[1].data[0].value = total_upgrade_price / 100
+    option.series[1].data[1].value = total_skin_price / 100
+    option.series[1].data[2].value = total_subscription_price / 100
+    option.series[1].data[3].value = total_ship_price / 100
+    option.series[1].data[4].value = total_other_price / 100
 
+    console.log(option)
     return option
 }
 
