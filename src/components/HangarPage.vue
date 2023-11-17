@@ -30,7 +30,8 @@ export interface HangarItemTableData {
     status: string[],
     date: Date,
     rowClassName?: string,
-    raw: HangarItem
+    raw: HangarItem,
+    id_list: number[]
 }
 
 function renderDataTableTitle(row: HangarItemTableData) {
@@ -103,7 +104,8 @@ function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
         save: save,
         status: status,
         date: item.date,
-        raw: item
+        raw: item,
+        id_list: [item.id]
     }
 }
 
@@ -122,6 +124,7 @@ function convertHangarItemsToTableData(items: HangarItem[]): HangarItemTableData
             const old_item = map.get(key)
             if (old_item) {
                 old_item.num += 1
+                old_item.id_list.push(item.id)
             }
         } else {
             map.set(key, convertHangarItemToTableData(item))
@@ -248,7 +251,7 @@ export default {
                 {
                     title: '名称',
                     key: 'title',
-                    width: '20%',
+                    width: '28%',
                     filterOptions: [
                         {
                             label: '可升级',
@@ -273,12 +276,12 @@ export default {
                 {
                     title: '数量',
                     key: 'num',
-                    width: '8%'
+                    width: '6%'
                 },
                 {
                     title: '状态',
                     key: 'status',
-                    width: '25%',
+                    width: '27%',
                     render (row) {
                         const tags = row.status.map((tagKey) => {
                             let tag_type: string = ""
@@ -290,14 +293,20 @@ export default {
                                 tag_type = 'info'
                             }
                             return h(
-                                NTag as any,
+                                NButton as any,
                                 {
                                     style: {
                                         marginRight: '6px'
                                     },
-                                        type: tag_type,
-                                        bordered: false
-                                    },
+                                    type: tag_type,
+                                    strong: true,
+                                    secondary: true,
+                                    focusable: false,
+                                    size: 'small',
+                                    onClick: () => {
+                                        console.log(tagKey, row)
+                                    }
+                                },
                                     {
                                     default: () => tagKey
                                 }
@@ -309,7 +318,7 @@ export default {
                 {
                     title: '原价',
                     key: 'price',
-                    width: '10%',
+                    width: '8%',
                     defaultSortOrder: false,
                     sorter: {
                         compare: (a, b) => a.price - b.price,
@@ -326,7 +335,7 @@ export default {
                 {
                     title: '现价',
                     key: 'current_price',
-                    width: '10%',
+                    width: '8%',
                     sorter: {
                         compare: (a, b) => a.current_price - b.current_price,
                         multiple: 3
@@ -341,7 +350,7 @@ export default {
                 {
                     title: '节约',
                     key: 'save',
-                    width: '10%',
+                    width: '8%',
                     sorter: {
                         compare: (a, b) => a.save - b.save,
                         multiple: 3
