@@ -2,6 +2,22 @@
 import { getRefugeSettings, getUsersFromDatabase, removeDuplicateUserFromDatabase } from '../../electron/uitils/settings';
 import { NAvatar, NDropdown, NButton, NCard, NSpace, NDivider } from 'naive-ui';
 import { formatTime } from '../../electron/uitils/basic';
+import { refreshBillingItems, getStoredBillingItems } from '../../electron/network/billing-parser/BillingParser';
+import { getBillingsEchartOptions, getTimeBillingEchartOptions } from '../utils/echartsFormatter';
+
+import * as echarts from 'echarts/core';
+import { 
+    TooltipComponent, 
+    LegendComponent,
+    TitleComponent,
+    ToolboxComponent,
+    GridComponent,
+    DataZoomComponent
+} from 'echarts/components';
+import { PieChart, LineChart } from 'echarts/charts';
+import { LabelLayout, UniversalTransition } from 'echarts/features';
+import { CanvasRenderer } from 'echarts/renderers';
+
 
 export default {
     setup() {
@@ -38,7 +54,28 @@ export default {
         })
         this.currentUser = refugeSettings.currentUser
         this.currentUserName = refugeSettings.currentUser.handle
-        console.log(this.options)
+        echarts.use([
+            TooltipComponent,
+            LegendComponent,
+            PieChart,
+            CanvasRenderer,
+            LabelLayout,
+            DataZoomComponent,
+            TitleComponent,
+            ToolboxComponent,
+            GridComponent,
+            LineChart,
+            UniversalTransition
+        ]);
+        let chartDom = document.getElementById('spent_echarts_container');
+        let billingChart = echarts.init(chartDom);
+        let option = getBillingsEchartOptions(getStoredBillingItems());
+        billingChart.setOption(option);
+
+        let timeChartDom = document.getElementById('time_echarts_container');
+        let timeChart = echarts.init(timeChartDom);
+        let timeOption = getTimeBillingEchartOptions(getStoredBillingItems());
+        timeChart.setOption(timeOption);
     },
     methods: {
         handleSelect() {
@@ -129,12 +166,15 @@ export default {
                 </n-space>
             </template>
         </n-card>
-        <n-card title="购买" style="width: 300px;">
-            <n-space justify="space-between">
-                <p>邀请人数</p>
-                <p>{{ `${currentUser.referral_count}人` }}</p>
-            </n-space>
-        </n-card>
+        <n-space vertical>
+            <n-card title="账单统计" style="width: 500px;" hoverable>
+                <div id="spent_echarts_container" style="width: 100%; height: 300px;" />
+            </n-card>
+            <n-card style="width: 500px;" hoverable>
+                <div id="time_echarts_container" style="width: 100%; height: 273px;" />
+            </n-card>
+        </n-space>
+        
     </n-space>
 </template>
 <style scoped>

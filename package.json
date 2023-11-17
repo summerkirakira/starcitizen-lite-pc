@@ -38,6 +38,7 @@
     "compare-versions": "^6.1.0",
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.4",
+    "echarts": "^5.4.3",
     "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.4",

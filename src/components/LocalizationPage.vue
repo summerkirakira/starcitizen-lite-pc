@@ -9,8 +9,6 @@ import fs from 'fs'
 import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
 import { startGame } from '../../electron/uitils/start-game'
-import { getUser } from '../../electron/network/user-parser/UserParser'
-import { refreshBuybackItems } from '../../electron/network/buyback-parser/BuyBackParser'
 
 const store = new Store()
 
