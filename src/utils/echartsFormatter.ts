@@ -132,7 +132,7 @@ export function getBillingsEchartOptions(billingItem: BillingItem[]) {
         { value: total_skin_price / 100, name: '涂装' },
         { value: total_subscription_price / 100, name: '订阅' },
         { value: total_ship_price / 100, name: '舰船' },
-        { value: total_other_price / 100, name: '其他' }
+        { value: total_other_price / 100, name: '其他' } 
     ]
 
     return option

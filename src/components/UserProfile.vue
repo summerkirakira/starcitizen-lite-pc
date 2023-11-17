@@ -1,9 +1,12 @@
 <script lang="ts">
-import { getRefugeSettings, getUsersFromDatabase, removeDuplicateUserFromDatabase } from '../../electron/uitils/settings';
-import { NAvatar, NDropdown, NButton, NCard, NSpace, NDivider } from 'naive-ui';
+import { getRefugeSettings, getUsersFromDatabase, removeDuplicateUserFromDatabase, setRefugeSettings } from '../../electron/uitils/settings';
+import { NAvatar, NDropdown, NButton, NCard, NSpace, NDivider, NModal, NPopselect } from 'naive-ui';
 import { formatTime } from '../../electron/uitils/basic';
-import { refreshBillingItems, getStoredBillingItems } from '../../electron/network/billing-parser/BillingParser';
+import { refreshBillingItems, getStoredBillingItems, BillingItem } from '../../electron/network/billing-parser/BillingParser';
 import { getBillingsEchartOptions, getTimeBillingEchartOptions } from '../utils/echartsFormatter';
+import { ref } from 'vue';
+import { getUser } from '../../electron/network/user-parser/UserParser'
+import { applyUserSettings } from '../../electron/uitils/signin'
 
 import * as echarts from 'echarts/core';
 import { 
@@ -17,31 +20,40 @@ import {
 import { PieChart, LineChart } from 'echarts/charts';
 import { LabelLayout, UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
+import { initialize } from '../../electron/preload/initialize';
 
 
 export default {
     setup() {
         const refugeSettings = getRefugeSettings()
         if (refugeSettings.currentUser == null) {
+            console.log('currentUser is null')
             window.location.hash = '#/login'
-            return
         }
         return {
             options: [],
             currentUser: refugeSettings.currentUser,
+            isUserChooseModalVisible: ref(false),
+            chooseValue: ref(''),
+            refresh_key: 0
         }
     },
-    data() {
-        
-    },
-    mounted() {
-        
-    },
+    // mounted() {
+    //     const refugeSettings = getRefugeSettings()
+    //     if (refugeSettings.currentUser == null) {
+    //         window.location.hash = '#/login'
+    //         return
+    //     }
+    // },
     activated() {
         const refugeSettings = getRefugeSettings()
         if (refugeSettings.currentUser == null) {
             window.location.hash = '#/login'
             return
+        }
+        if (this.currentUser == null) {
+            this.currentUser = refugeSettings.currentUser
+            this.refresh_key += 1
         }
         removeDuplicateUserFromDatabase()
         const users = getUsersFromDatabase()
@@ -49,8 +61,12 @@ export default {
         users.forEach((user) => {
             this.options.push({
                 label: user.handle,
-                key: user.id
+                key: user.handle
             })
+        })
+        this.options.push({
+            label: '登录新账号',
+            key: 'add_new_user'
         })
         this.currentUser = refugeSettings.currentUser
         this.currentUserName = refugeSettings.currentUser.handle
@@ -76,13 +92,54 @@ export default {
         let timeChart = echarts.init(timeChartDom);
         let timeOption = getTimeBillingEchartOptions(getStoredBillingItems());
         timeChart.setOption(timeOption);
+        this.refreshUserData()
+        refreshBillingItems().then((billingItems: BillingItem[]) => {
+            let option = getBillingsEchartOptions(billingItems);
+            billingChart.setOption(option);
+            let timeOption = getTimeBillingEchartOptions(billingItems);
+            timeChart.setOption(timeOption);
+        })
     },
     methods: {
         handleSelect() {
-            console.log('handleSelect')
+            this.isUserChooseModalVisible = true
         },
         formatDate(time: Date): string {
             return formatTime(new Date(time))
+        },
+        updateUser(value: string) {
+            this.isUserChooseModalVisible = false
+            let refuge_settings = getRefugeSettings()
+            if (value == 'add_new_user') {
+                refuge_settings.currentUser = null
+                setRefugeSettings(refuge_settings)
+                window.location.hash = '#/login'
+                return
+            } else {
+                const users = getUsersFromDatabase()
+                users.forEach((user) => {
+                    if (user.handle == value) {
+                        refuge_settings = getRefugeSettings()
+                        refuge_settings.currentUser = user
+                        refuge_settings.accountSettings.email = user.email
+                        refuge_settings.accountSettings.password = user.password
+                        this.currentUser = user
+                        setRefugeSettings(refuge_settings)
+                        applyUserSettings()
+                        this.refresh_key += 1
+                        return
+                    }
+                })
+            }
+        },
+        refreshUserData() {
+            const refugeSettings = getRefugeSettings()
+            getUser(this.currentUser.id, this.currentUser.email, this.currentUser.password).then((user) => {
+                refugeSettings.currentUser = user
+                setRefugeSettings(refugeSettings)
+                this.currentUser = user
+                this.refresh_key += 1
+            })
         }
     },
     components: {
@@ -91,12 +148,14 @@ export default {
         NButton,
         NCard,
         NSpace,
-        NDivider
+        NDivider,
+        NModal,
+        NPopselect
     }
 }
 </script>
 <template>
-    <n-space id="container">
+    <n-space id="container" v-if="currentUser != null" :key="refresh_key">
 
         <!-- <n-dropdown :options="options" @select="handleSelect">
             <n-button>{{ currentUserName }}</n-button>
@@ -135,10 +194,10 @@ export default {
                     <n-divider />
                     <n-space justify="space-between">
                         <p>机库价值</p>
-                        <p>{{ `${currentUser.hangar_value} USD` }}</p>
+                        <p>{{ `${currentUser.hangar_value / 100} USD` }}</p>
                     </n-space>
                     <n-space justify="space-between">
-                        <p>信用点</p>
+                        <p>消费额/信用点</p>
                         <p>{{ `${currentUser.total_spent} USD` }}</p>
                     </n-space>
                     <n-space justify="space-between">
@@ -155,7 +214,7 @@ export default {
                     </n-space>
                     <n-space justify="space-between">
                         <p>邀请人数</p>
-                        <p>{{ `${currentUser.referral_count}人` }}</p>
+                        <p>{{ `${currentUser.referral_count}/${currentUser.referral_prospects}人` }}</p>
                     </n-space>
                 </div>
             </div>
@@ -174,8 +233,37 @@ export default {
                 <div id="time_echarts_container" style="width: 100%; height: 273px;" />
             </n-card>
         </n-space>
-        
     </n-space>
+    <n-modal v-model:show="isUserChooseModalVisible" 
+                title="请选择要切换的账号"
+                >
+        <n-card
+        style="width: 600px"
+        title="请选择要切换的账号"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        >
+        <template #header-extra>
+            噢！
+        </template>
+        <n-dropdown
+            :options="options"
+            size="medium"
+            @select="updateUser"
+            scrollable
+        >
+            <n-button style="margin-right: 8px">
+                {{ currentUser.handle }}
+            </n-button>
+        </n-dropdown>
+        <template #footer>
+            尾部
+        </template>
+        </n-card>
+    </n-modal>
+    
 </template>
 <style scoped>
 #container {

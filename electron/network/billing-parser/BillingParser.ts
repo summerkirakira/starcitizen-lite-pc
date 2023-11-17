@@ -139,6 +139,7 @@ export async function refreshBillingItems(): Promise<BillingItem[]> {
     const hangar_items: BillingItem[] = []
     let items_on_page = parseHtmlToBillingItem(response)
     while (items_on_page.length > 0) {
+        console.log(page)
         hangar_items.push(...items_on_page)
         page += 1
         url = `account/billing?page=${page}&pagesize=100`

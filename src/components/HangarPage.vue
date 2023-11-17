@@ -12,7 +12,8 @@ import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName, tra
 import { h } from 'vue'
 import moment from 'moment'
 import { useNotification, useLoadingBar, useMessage } from 'naive-ui'
-import { getRefugeSettings } from '../../electron/uitils/settings'
+import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
+import { addUserToDatabase } from '../../electron/uitils/settings'
 import { NButton, NIcon } from 'naive-ui'
 import { RefreshOutline as RefreshIcon } from '@vicons/ionicons5'
 import HangarPopupMenu from './HangarPopupMenu.vue'
@@ -129,7 +130,16 @@ function convertHangarItemsToTableData(items: HangarItem[]): HangarItemTableData
     for (const item of map.values()) {
         result.push(item)
     }
-    console.log(result)
+    let hangar_value = 0
+    result.forEach((item) => {
+        hangar_value += item.current_price * item.num
+    })
+    const refuge_settings = getRefugeSettings()
+    if (refuge_settings.currentUser != null) {
+        refuge_settings.currentUser.hangar_value = hangar_value
+        addUserToDatabase(refuge_settings.currentUser)
+        setRefugeSettings(refuge_settings)
+    }
     return result
 }
 
