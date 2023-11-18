@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, globalShortcut } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, globalShortcut, session } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { chooseFile, extractZipToPath } from '../uitils/files'
@@ -50,6 +50,7 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
 const preload = join(__dirname, '../preload/index.js')
+const rsi_preload = join(__dirname, '../preload/rsi.js')
 const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
 
@@ -103,6 +104,43 @@ async function createWindow() {
 
 app.whenReady().then(() => { 
   createWindow()
+
+  ipcMain.handle('set-web-cookie', (event, cookie: any): Promise<any> => {
+    return session.defaultSession.cookies.set(cookie)
+  })
+
+  ipcMain.handle('open-rsi-web', (event, url: string): Promise<any> => {
+    const rsiWebWindow = new BrowserWindow({
+      width: 1200,
+      height: 800,
+      webPreferences: {
+        preload: rsi_preload,
+        nodeIntegration: true,
+        contextIsolation: false,
+        webSecurity: false,
+        sandbox:false
+      },
+      backgroundColor: '#2e2c29'
+    })
+
+    // rsiWebWindow.once('ready-to-show', () => {
+    //   rsiWebWindow.show()
+    // })
+
+    if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
+      rsiWebWindow.loadURL(url)
+      // Open devTool if the app is not packaged
+      rsiWebWindow.on("ready-to-show", () => {
+        rsiWebWindow.webContents.openDevTools();
+      });
+    } else {
+      rsiWebWindow.loadURL(url)
+    }
+    // ipcMain.handle('share-data', (event, data) => {
+    //   rsiWebWindow.webContents.send('share-data', data)
+    // })
+    return 
+  })
   
   globalShortcut.register('CommandOrControl+Shift+I', () => {
     BrowserWindow.getFocusedWindow().webContents.openDevTools();

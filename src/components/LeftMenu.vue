@@ -102,9 +102,9 @@ import { useNotification } from 'naive-ui'
     {
       label: () =>
         h(
-          'span',
+          'a',
           {
-            href: '#/localization',
+            href: '#/utilities',
           },
           '实用工具'
         ),
@@ -160,7 +160,7 @@ import { useNotification } from 'naive-ui'
             this.selectOpition = clickValue
         },
         showNotInplementedNotificaiton(key: string, option: MenuOption) {
-          if (key === 'my-tools' || key === 'my-settings')
+          if (key === 'my-settings')
             this.notification.warning({
                 title: '当前功能还在开发中哦',
                 content: '请耐心等待避难所PC更新'

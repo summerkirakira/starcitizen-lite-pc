@@ -116,6 +116,8 @@ window.fileManager = {
   getZipFile: (url: string, targetPath: string): Promise<string> => ipcRenderer.invoke('download-file', url, targetPath)
 }
 
+window.setWebCookie = (webSettings: any) => ipcRenderer.invoke('set-web-cookie', webSettings)
+
 ipcRenderer.invoke('get-app-path').then((appPath: string) => {
   // const refugePath = path.join(appPath, 'refuge-pc')
   // if(!fs.existsSync(refugePath)) {
@@ -125,6 +127,10 @@ ipcRenderer.invoke('get-app-path').then((appPath: string) => {
 })
 
 window.openDevTools = () => ipcRenderer.send('open-dev-tools')
+
+window.openRsiWeb = (url: string) => ipcRenderer.invoke('open-rsi-web', url)
+
+window.shareData = (data: any) => ipcRenderer.send('share-data', data)
 
 initialize()
 

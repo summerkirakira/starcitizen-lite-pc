@@ -10,10 +10,13 @@ declare global {
       CirnoApi: CirnoApi
       RsiApi: RsiApiService
       chooseFile: (filter: Filter) => Promise<string[]>
+      setWebCookie: (webSettings: any) => void
+      openRsiWeb: (url: string) => void
+      shareData: (data: any) => void
       appPath: string
       openDevTools: () => void
       fileManager: {
-        getZipFile: (url: string, targetPath: string) => Promise<string>
+        getZipFile: (url: string, targetPath: string) => Promise<string> | null
         shipAliasMap: Map<string, ShipAlias>
         translationMap: Map<string, string>
       }

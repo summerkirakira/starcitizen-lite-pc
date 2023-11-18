@@ -184,7 +184,7 @@ export default {
                     }
                     
                 },
-            ],
+            ] as any[],
             rowClassName (row: BuybackItemTableData) {
                 if (row.title.includes('Upgrade')) {
                     // console.log(row)

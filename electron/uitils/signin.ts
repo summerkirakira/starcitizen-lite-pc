@@ -1,5 +1,5 @@
 import Store from 'electron-store'
-import { refreshCsrfToken } from '../preload/initialize'
+import { refreshCsrfToken, setCookies } from '../preload/initialize'
 import { RsiLoginResponse } from '../network/RsiAPIProperty'
 import { getRefugeSettings } from './settings'
 
@@ -70,4 +70,5 @@ export function applyUserSettings() {
     window.webSettings.rsi_device = refugeSettings.currentUser.rsi_device
     store.set('rsi_token', window.webSettings.rsi_token)
     store.set('rsi_device', window.webSettings.rsi_device)
+    setCookies()
 }

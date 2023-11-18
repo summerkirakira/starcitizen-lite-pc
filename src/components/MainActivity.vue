@@ -6,6 +6,7 @@ import PhoneAppPage from './PhoneAppPage.vue'
 import LoginPage from './LoginPage.vue'
 import BuybackPage from './BuybackPage.vue'
 import BugReportPage from './BugReportPage.vue'
+import UtilitiesPage from './UtilitiesPage.vue'
 import { KeepAlive } from 'vue'
 import { useNotification, useMessage } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
@@ -25,6 +26,7 @@ const routes: any = {
   '/user-profile': UserProfile,
   '/buyback': BuybackPage,
   '/bug-report': BugReportPage,
+  '/utilities': UtilitiesPage
 }
 export default {
   data() {
@@ -111,9 +113,6 @@ export default {
 </script>
 <template>
     <div class="container">
-        <!-- <a href="#/localization">Localization Page</a> |
-        <a href="#/settings">Settings Page</a> |
-        <a href="#/hangar">Hangar Page</a> -->
         <KeepAlive>
           <component :is="currentView" style="width: 100%; height: 100%;" />
         </KeepAlive>
