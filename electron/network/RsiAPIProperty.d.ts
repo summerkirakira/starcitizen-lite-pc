@@ -142,3 +142,9 @@ export interface RsiLauncherReleaseInfoResponse {
         versionLabel: string;
     }
 }
+
+export interface BasicResponseBody {
+    success: number;
+    code: string;
+    msg: string;
+}

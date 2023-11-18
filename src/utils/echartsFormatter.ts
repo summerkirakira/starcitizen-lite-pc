@@ -131,7 +131,7 @@ export function getBillingsEchartOptions(billingItem: BillingItem[]) {
     option.series[1].data[3].value = total_ship_price / 100
     option.series[1].data[4].value = total_other_price / 100
 
-    console.log(option)
+    // console.log(option)
     return option
 }
 

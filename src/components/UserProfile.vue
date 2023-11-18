@@ -246,8 +246,7 @@ export default {
         </n-space>
     </n-space>
     <n-modal v-model:show="isUserChooseModalVisible" 
-                title="请选择要切换的账号"
-                >
+                title="请选择要切换的账号">
         <n-card
         style="width: 600px"
         title="请选择要切换的账号"
@@ -256,9 +255,6 @@ export default {
         role="dialog"
         aria-modal="true"
         >
-        <template #header-extra>
-            噢！
-        </template>
         <n-dropdown
             :options="options"
             size="medium"
@@ -269,9 +265,6 @@ export default {
                 {{ currentUser.handle }}
             </n-button>
         </n-dropdown>
-        <template #footer>
-            尾部
-        </template>
         </n-card>
     </n-modal>
     

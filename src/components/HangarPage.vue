@@ -4,12 +4,13 @@ import {
     NDataTable,
     NTag,
     NImage,
-c
+    NPopconfirm,
+    NModal
 } from 'naive-ui'
 import { getStoredHangarItems, refreshHangarItems } from '../../electron/network/hangar-parser/HangarParser'
 import { HangarItem } from '../../electron/network/hangar-parser/HangarParser'
 import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName, translateHangerItemType } from '../../electron/uitils/hangar-util'
-import { h } from 'vue'
+import { h, ref } from 'vue'
 import moment from 'moment'
 import { useNotification, useLoadingBar, useMessage } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
@@ -178,7 +179,11 @@ export default {
             },
             notification,
             loadingBar,
-            message
+            message,
+            showReclaimConfirm: ref(false),
+            selectedReclaimItem: {} as HangarItemTableData,
+            selectedReclaimItemTitle: "",
+            clickedTagKey: "",
         }
     },
     components: {
@@ -187,7 +192,9 @@ export default {
         NButton,
         NIcon,
         RefreshIcon,
-        HangarPopupMenu
+        HangarPopupMenu,
+        NPopconfirm,
+        NModal
     },
     mounted() {
         const refugeSettings = getRefugeSettings()
@@ -219,10 +226,45 @@ export default {
                 })
                 this.loadingBar.error()
             })
+        },
+        handleTagClick() {
+            const tagKey = this.clickedTagKey
+            const row = this.selectedReclaimItem
+            const refuge_settings = getRefugeSettings()
+            switch(tagKey){
+                case '可升级':
+                    break
+                case '可回收':
+                    
+                    window.RsiApi.reclaimPledges(row.id_list, refuge_settings.currentUser.password).then((responses) => {
+                        let is_success = true
+                        for(const response of responses) {
+                            if (response.success === 0) {
+                                response.msg = response.msg.replace('A pledge can only be reclaimed more than 24h after it is acquired: ', '机库中的物品在购买24小时后才能回收哦：剩余时间')
+                                                .replace('hours', '小时').replace('minutes', '分钟').replace('left', '').trim()
+
+                                this.notification.error({
+                                    title: '回收失败',
+                                    content: response.msg
+                                })
+                                is_success = false
+                            }
+                        }
+                        if (is_success) {
+                            this.notification.success({
+                                title: `回收${responses.length}件机库物品成功`,
+                                content: '正在刷新机库'
+                            })
+                            this.handleRefreshBtnClicked()
+                        }
+                    })
+                    
+            }
         }
         
     },
     data() {
+        const me = this as any
         return {
             columns: [
                 {
@@ -304,7 +346,12 @@ export default {
                                     focusable: false,
                                     size: 'small',
                                     onClick: () => {
-                                        console.log(tagKey, row)
+                                        // me.handleTagClick(tagKey, row)
+                                        me.selectedReclaimItemTitle = `${row.title} x ${row.num} (${'$'}${row.price * row.num / 100.0})`
+                                        me.selectedReclaimItem = row
+                                        me.clickedTagKey = tagKey
+                                        me.showReclaimConfirm = true
+
                                     }
                                 },
                                     {
@@ -412,6 +459,16 @@ export default {
             </template>
         </n-button>
     </div>
+    <n-modal
+        v-model:show="showReclaimConfirm"
+        preset="dialog"
+        title="回收确认"
+        :content="`确定要回收 ${ selectedReclaimItemTitle } 吗 ? \n警告！此操作无法回退！该机库物品将永远消失并返还与原价等额的信用点。`"
+        positive-text="确认"
+        negative-text="取消"
+        @positive-click="handleTagClick"
+        @negative-click="() => {console.log('cancel'); showReclaimConfirm = false;}">
+    </n-modal>
 </template>
 
 <style scoped>

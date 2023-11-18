@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios"
-import { BasicGraphqlPostBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherReleaseInfoResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
+import { BasicGraphqlPostBody, BasicResponseBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherReleaseInfoResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
 import { getCookie } from "../uitils/cookies-manager"
 import { ipcRenderer } from "electron"
 import { getRefugeSettings } from "../uitils/settings"
@@ -32,6 +32,16 @@ export async function RsiPostWithFullResponse<T>(url: string, postData: any, hea
 export async function RsiGet<T>(url: string, headers: any): Promise<T> {
     const { data } = await RsiAixoInstance.get<T>(BASE_URL + url, { headers , withCredentials: true})
     return data
+}
+
+export async function RsiGetWithCookie<T>(url: string, headers: any): Promise<AxiosResponse<T>> {
+    const response = await ipcRenderer.invoke('rsi-api-get', url, headers)
+    return response
+}
+
+export async function RsiPostWithCookie<T>(url: string, postData: any, headers: any): Promise<T> {
+    const response = await ipcRenderer.invoke('rsi-api-post', url, postData, headers)
+    return response
 }
 
 
@@ -211,5 +221,24 @@ export class RsiApiService {
             'x-rsi-device': window.webSettings.rsi_device,
         })
         return releaseInfo
-    } 
+    }
+
+    async reclaimPledge(pledge_id: string, current_password: string): Promise<BasicResponseBody> {
+        const postData = {
+            "current_password": current_password,
+            "pledge_id": pledge_id
+        }
+        const headers = this.getHeaders()
+        headers['x-rsi-token'] = window.webSettings.rsi_token
+        const response = await RsiPostWithCookie<BasicResponseBody>('api/account/reclaimPledge', postData, headers)
+        return response
+    }
+
+    async reclaimPledges(pledge_ids: number[], current_password: string): Promise<BasicResponseBody[]> {
+        const responses: BasicResponseBody[] = []
+        for (const pledge_id of pledge_ids) {
+            responses.push(await this.reclaimPledge(pledge_id.toString(), current_password))
+        }
+        return responses
+    }
 }
