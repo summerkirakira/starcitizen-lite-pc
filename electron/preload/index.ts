@@ -116,6 +116,9 @@ window.fileManager = {
   getZipFile: (url: string, targetPath: string): Promise<string> => ipcRenderer.invoke('download-file', url, targetPath)
 }
 
+window.fileManager.writeToClipboard = (text: string) => ipcRenderer.invoke('write-to-clipboard', text)
+window.openExternal = (url: string) => ipcRenderer.invoke('open-external', url)
+
 window.setWebCookie = (webSettings: any) => ipcRenderer.invoke('set-web-cookie', webSettings)
 
 ipcRenderer.invoke('get-app-path').then((appPath: string) => {

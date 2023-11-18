@@ -16,6 +16,15 @@ export class Filter {
     extensions: string[];
 }
 
+export interface LocalGameInfo {
+    Branch: string;
+    BuildDateStamp: string;
+    BuildTimeStamp: string;
+    DuildId: string;
+    RequestedP4ChangeNum: string;
+    Shelved_Change: string;
+}
+
 export const chooseFile = (filter: Filter): string[] => { 
     return dialog.showOpenDialogSync(
         {
@@ -214,6 +223,19 @@ export async function uninstallLocalization(): Promise<void> {
         }
         
     }
+}
+
+export function getCurrentGameInfo(): LocalGameInfo | null {
+    const refugeSettings = getRefugeSettings()
+    if (refugeSettings.gameSettings.currentGamePath == null) {
+        return null
+    }
+    const buildInfoPath = path.join(refugeSettings.gameSettings.currentGamePath, 'build_manifest.id')
+    if (!fs.existsSync(buildInfoPath)) {
+        return null
+    }
+    const buildInfo = readJsonFile(buildInfoPath).Data
+    return buildInfo
 }
 
 

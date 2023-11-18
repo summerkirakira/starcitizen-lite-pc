@@ -164,7 +164,7 @@ export class RsiApiService {
     }
 
     async getLibrary(): Promise<RsiLauncherLibraryResponse> {
-        const library = await RsiPost<RsiLauncherLibraryResponse>('api/launcher/v3/games/library', { "claims": window.webSettings.claims }, {
+        const library = await RsiPost<RsiLauncherLibraryResponse>('api/launcher/v3/games/library', { "claims": (await window.RsiApi.getClaims()).data }, {
             'x-rsi-token': window.webSettings.rsi_token,
             'x-rsi-device': window.webSettings.rsi_device,
         })
@@ -209,7 +209,7 @@ export class RsiApiService {
         }
         
     }
-    async getReleaseInfo(channelId: string, claims: string, gameId: string, platformId: string) {
+    async getReleaseInfo(channelId: string, claims: string, gameId: string, platformId: string): Promise<RsiLauncherReleaseInfoResponse> {
         const postData = {
             "channelId": channelId,
             "claims": claims,

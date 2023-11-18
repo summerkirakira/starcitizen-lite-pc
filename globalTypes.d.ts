@@ -15,10 +15,12 @@ declare global {
       shareData: (data: any) => void
       appPath: string
       openDevTools: () => void
+      openExternal: (url: string) => void
       fileManager: {
         getZipFile: (url: string, targetPath: string) => Promise<string> | null
         shipAliasMap: Map<string, ShipAlias>
         translationMap: Map<string, string>
+        writeToClipboard: (text: string) => void
       }
       webSettings: {
         csrfToken: string
