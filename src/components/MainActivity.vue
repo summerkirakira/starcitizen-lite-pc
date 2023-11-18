@@ -62,7 +62,7 @@ export default {
       if (res) {
         const refugeSettings = getRefugeSettings()
         this.message.success(
-          `登录成功...欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`,
+          `登录成功~欢迎回来，${refugeSettings.currentUser.handle}`,
           { duration: 5000 }
         )
       } else {

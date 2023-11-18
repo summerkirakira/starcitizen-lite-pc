@@ -103,13 +103,13 @@ import { useNotification } from 'naive-ui'
       label: () =>
         h(
           'span',
-          // {
-          //   href: '#/localization',
-          // },
+          {
+            href: '#/localization',
+          },
           '实用工具'
         ),
       key: 'my-tools',
-      disabled: true,
+      disabled: false,
       icon: renderIcon(BuildIcon)
     },
     {

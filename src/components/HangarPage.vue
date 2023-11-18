@@ -347,23 +347,36 @@ export default {
                 {
                     title: '名称',
                     key: 'title',
-                    width: '28%',
+                    width: '26%',
                     filterOptions: [
                         {
-                            label: '可升级',
-                            value: '可升级'
+                            label: '舰船',
+                            value: '舰船'
                         },
                         {
-                            label: '可回收',
-                            value: '可回收'
+                            label: '涂装',
+                            value: '涂装'
                         },
                         {
-                            label: '可礼物',
-                            value: '可礼物'
+                            label: '升级',
+                            value: '升级'
+                        },
+                        {
+                            label: '订阅',
+                            value: '订阅'
                         }
                     ],
-                    filter (value, row) {
-                        return ~row.address.indexOf(value)
+                    filter: (value, row) => {
+                        switch(value) {
+                            case '升级':
+                                return row.english_title.includes('Upgrade')
+                            case '舰船':
+                                return (row.english_title.includes('Ship') && row.current_price > 0) || (row.current_price > row.price && !row.english_title.includes('Upgrade'))
+                            case '涂装':
+                                return row.english_title.includes('Paint')
+                            case '订阅':
+                                return row.price === 0 && row.status.includes('可礼物')
+                        }
                     },
                     render (row) {
                         return renderDataTableTitle(row)
@@ -377,7 +390,35 @@ export default {
                 {
                     title: '状态',
                     key: 'status',
-                    width: '27%',
+                    width: '26%',
+                    filterOptions: [
+                        {
+                            label: '可升级',
+                            value: '可升级'
+                        },
+                        {
+                            label: '可回收',
+                            value: '可回收'
+                        },
+                        {
+                            label: '可礼物',
+                            value: '可礼物'
+                        },
+                        {
+                            label: '已赠送',
+                            value: '已赠送'
+                        },
+                        {
+                            label: '其他',
+                            value: '其他'
+                        }
+                    ],
+                    filter (value, row) {
+                        if (value === '其他') {
+                            return row.status.length === 0
+                        }
+                        return row.status.includes(value)
+                    },
                     render (row) {
                         const tags = row.status.map((tagKey) => {
                             let tag_type: string = ""
@@ -506,6 +547,10 @@ export default {
     },
     computed: {
         emailAutoCompeleteOptions() {
+            const prefix = this.giftEmail
+            if (prefix.includes('@')) {
+                return []
+            }
             return ['@gmail.com', '@163.com', '@qq.com', '@126.com', '@outlook.com'].map((suffix) => {
                 const prefix = this.giftEmail
                     return {
