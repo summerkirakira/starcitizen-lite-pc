@@ -5,12 +5,15 @@ import {
     NTag,
     NImage,
     NPopconfirm,
-    NModal
+    NModal,
+    NAutoComplete,
+    NCard,
+    NInput
 } from 'naive-ui'
 import { getStoredHangarItems, refreshHangarItems } from '../../electron/network/hangar-parser/HangarParser'
 import { HangarItem } from '../../electron/network/hangar-parser/HangarParser'
 import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName, translateHangerItemType } from '../../electron/uitils/hangar-util'
-import { h, ref } from 'vue'
+import { h, ref, computed } from 'vue'
 import moment from 'moment'
 import { useNotification, useLoadingBar, useMessage } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
@@ -54,6 +57,9 @@ function convertHangarItemToTableData(item: HangarItem): HangarItemTableData {
     }
     if (item.is_upgrade) {
         status.push('可升级')
+    }
+    if (item.status === 'Gifted') {
+        status.push('已赠送')
     }
     let currentPrice = 0
 
@@ -121,6 +127,7 @@ function convertHangarItemsToTableData(items: HangarItem[]): HangarItemTableData
         item.also_contains.forEach((also_contain) => {
             key += also_contain
         })
+        key += item.status
         if (map.has(key)) {
             const old_item = map.get(key)
             if (old_item) {
@@ -184,6 +191,7 @@ export default {
             selectedReclaimItem: {} as HangarItemTableData,
             selectedReclaimItemTitle: "",
             clickedTagKey: "",
+            showGiftConfirm: ref(false),
         }
     },
     components: {
@@ -194,7 +202,10 @@ export default {
         RefreshIcon,
         HangarPopupMenu,
         NPopconfirm,
-        NModal
+        NModal,
+        NAutoComplete,
+        NCard,
+        NInput
     },
     mounted() {
         const refugeSettings = getRefugeSettings()
@@ -230,12 +241,14 @@ export default {
         handleTagClick() {
             const tagKey = this.clickedTagKey
             const row = this.selectedReclaimItem
+            const email = this.giftEmail
+            const name = this.giftName
+            const password = this.giftPassword
             const refuge_settings = getRefugeSettings()
             switch(tagKey){
                 case '可升级':
                     break
                 case '可回收':
-                    
                     window.RsiApi.reclaimPledges(row.id_list, refuge_settings.currentUser.password).then((responses) => {
                         let is_success = true
                         for(const response of responses) {
@@ -253,7 +266,48 @@ export default {
                         if (is_success) {
                             this.notification.success({
                                 title: `回收${responses.length}件机库物品成功`,
-                                content: '正在刷新机库'
+                                content: `已回收 ${row.title} x ${row.num} (价值 ${convertNumberToCurrency(row.price * row.num)})。机库刷新中...`
+                            })
+                            this.handleRefreshBtnClicked()
+                        }
+                    })
+                    break
+                case '可礼物':
+                    if (password !== refuge_settings.currentUser.password) {
+                        this.notification.error({
+                            title: '密码错误',
+                            content: '请检查密码是否正确'
+                        })
+                        return
+                    }
+                    window.RsiApi.giftPledge(row.id.toString(), refuge_settings.currentUser.password, email, name).then((response) => {
+                        console.log(response)
+                        if (response.success === 0) {
+                            this.notification.error({
+                                title: '赠送失败',
+                                content: response.msg
+                            })
+                        } else {
+                            this.notification.success({
+                                title: '赠送成功',
+                                content: `已向 ${email} 成功赠送一件 ${row.title} (价值 ${convertNumberToCurrency(row.price)})。等待接收中...`
+                            })
+                            this.handleRefreshBtnClicked()
+                        }
+                    })
+                    break
+                case '已赠送':
+                    window.RsiApi.undoGiftPledge(row.id.toString()).then((response) => {
+                        console.log(response)
+                        if (response.success === 0) {
+                            this.notification.error({
+                                title: '撤销赠送失败',
+                                content: response.msg
+                            })
+                        } else {
+                            this.notification.success({
+                                title: '撤销赠送成功',
+                                content: `已撤销赠送一件 ${row.title} (价值 ${convertNumberToCurrency(row.price)})。机库刷新中...`
                             })
                             this.handleRefreshBtnClicked()
                         }
@@ -333,6 +387,8 @@ export default {
                                 tag_type = 'success'
                             } else if (tagKey === '可升级') {
                                 tag_type = 'info'
+                            } else if (tagKey === '已赠送') {
+                                tag_type = 'error'
                             }
                             return h(
                                 NButton as any,
@@ -346,11 +402,20 @@ export default {
                                     focusable: false,
                                     size: 'small',
                                     onClick: () => {
-                                        // me.handleTagClick(tagKey, row)
-                                        me.selectedReclaimItemTitle = `${row.title} x ${row.num} (${'$'}${row.price * row.num / 100.0})`
                                         me.selectedReclaimItem = row
                                         me.clickedTagKey = tagKey
-                                        me.showReclaimConfirm = true
+                                        switch(tagKey) {
+                                            case '可回收':
+                                                me.selectedReclaimItemTitle = `${row.title} x ${row.num} (${'$'}${row.price * row.num / 100.0})`
+                                                me.showReclaimConfirm = true
+                                                break
+                                            case '可礼物':
+                                                me.showGiftConfirm = true
+                                                break
+                                            case '已赠送':
+                                                me.handleTagClick()
+                                        }
+
 
                                     }
                                 },
@@ -433,7 +498,21 @@ export default {
                 }
                 return ''
             },
-            table_data: []
+            table_data: [],
+            giftName: '',
+            giftPassword: '',
+            giftEmail: '',
+        }
+    },
+    computed: {
+        emailAutoCompeleteOptions() {
+            return ['@gmail.com', '@163.com', '@qq.com', '@126.com', '@outlook.com'].map((suffix) => {
+                const prefix = this.giftEmail
+                    return {
+                        label: prefix + suffix,
+                        value: prefix + suffix
+                    }
+                })
         }
     }
 }
@@ -469,6 +548,36 @@ export default {
         @positive-click="handleTagClick"
         @negative-click="() => {console.log('cancel'); showReclaimConfirm = false;}">
     </n-modal>
+    <n-modal v-model:show="showGiftConfirm">
+    <n-card
+      style="width: 600px"
+      title="确认礼物信息"
+      :bordered="false"
+      size="huge"
+      role="dialog"
+      aria-modal="true"
+    >
+      <n-space vertical>
+        <n-input v-model:value="giftName" type="text" placeholder="请输入接收人姓名" />
+        <n-auto-complete
+            v-model:value="giftEmail"
+            :options="emailAutoCompeleteOptions"
+            placeholder="请输入接收人邮箱"
+            size="small"
+        />
+        <n-input
+            type="password"
+            v-model:value="giftPassword"
+            show-password-on="mousedown"
+            placeholder="请输入密码"
+        />
+        <n-space justify="end" horizon>
+            <n-button size="small" @click="() => {console.log('cancel'); showGiftConfirm = false;}">取消</n-button>
+            <n-button size="small" type="primary" @click="showGiftConfirm = false; handleTagClick()">确认</n-button>
+        </n-space>
+      </n-space>
+    </n-card>
+  </n-modal>
 </template>
 
 <style scoped>

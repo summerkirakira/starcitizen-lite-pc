@@ -56,7 +56,7 @@ async function RsiLogin(email: string, password: string, captcha: string, rememb
         }
     }
     const data = await ipcRenderer.invoke('rsi-api-post-with-full-response', 'graphql', postData, headers) as RsiLoginResponse
-    return data
+    return data as any
 }
 
 async function MultiStepRsiLogin(code: string, headers: any): Promise<RsiLoginResponse> {
@@ -240,5 +240,28 @@ export class RsiApiService {
             responses.push(await this.reclaimPledge(pledge_id.toString(), current_password))
         }
         return responses
+    }
+
+    async giftPledge(pledge_id: string, current_password: string, email: string, name: string) {
+        const postData = {
+            "current_password": current_password,
+            "email": email,
+            "name": name,
+            "pledge_id": pledge_id
+        }
+        const headers = this.getHeaders()
+        headers['x-rsi-token'] = window.webSettings.rsi_token
+        const response = await RsiPostWithCookie<BasicResponseBody>('api/account/giftPledge', postData, headers)
+        return response
+    }
+
+    async undoGiftPledge(pledge_id: string) {
+        const postData = {
+            "pledge_id": pledge_id
+        }
+        const headers = this.getHeaders()
+        headers['x-rsi-token'] = window.webSettings.rsi_token
+        const response = await RsiPostWithCookie<BasicResponseBody>('api/account/cancelGift', postData, headers)
+        return response
     }
 }
