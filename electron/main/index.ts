@@ -118,10 +118,14 @@ app.whenReady().then(() => {
         nodeIntegration: true,
         contextIsolation: false,
         webSecurity: false,
-        sandbox:false
+        sandbox:false,
+        allowRunningInsecureContent: true
       },
       backgroundColor: '#2e2c29'
     })
+
+    rsiWebWindow.setMinimumSize(1200, 800)
+    rsiWebWindow.setMenu(null)
 
     // rsiWebWindow.once('ready-to-show', () => {
     //   rsiWebWindow.show()
