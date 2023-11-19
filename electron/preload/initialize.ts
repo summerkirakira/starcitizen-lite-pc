@@ -6,6 +6,7 @@ import { ipcRenderer } from 'electron';
 import { RsiValidateToken } from '../network/RsiAPIProperty';
 import { compareVersions } from 'compare-versions';
 import { ShipAlias, Translation } from '../network/CirnoAPIProperty';
+import { getSessionCookies } from '../uitils/cookies-manager';
 
 
 const store = new Store()
@@ -20,6 +21,13 @@ export function initialize() {
     initializeAccountSettings()
     // initializeCliamSettings()
     checkResourceVersion()
+    setCookies()
+}
+
+export function setCookies() {
+    for (const cookie of getSessionCookies()) {
+        window.setWebCookie(cookie)
+    }
 }
 
 
@@ -49,7 +57,7 @@ async function fetchLocalizationInfo() {
     const refugeSettings = getRefugeSettings()
     if(refugeSettings.gameSettings.currentGamePath != null) {
         updateLocalizationSettings()
-        console.log(refugeSettings)
+        // console.log(refugeSettings)
     }
     // window.CirnoApi.getAvailiableLocalization().then((availiableLocalizations) => {
     //     const refugeSettings = getRefugeSettings()
@@ -170,7 +178,7 @@ function convertShipAliasListToMap(shipAliasList: ShipAlias[]): Map<string, Ship
     return shipAliasMap
 }
 
-function convertTranslationToMap(tranlationList: Translation[]): Map<string, string> {
+export function convertTranslationToMap(tranlationList: Translation[]): Map<string, string> {
     const translationMap = new Map<string, string>()
     for (const translation of tranlationList) {
         translationMap.set(translation.english_title, translation.title)

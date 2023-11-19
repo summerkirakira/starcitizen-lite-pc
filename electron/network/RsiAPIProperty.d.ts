@@ -122,15 +122,15 @@ export interface RsiLauncherReleaseInfoResponse {
             url: string;
         }
         objects: {
-            signature: string;
+            signatures: string;
             url: string;
         }
         p4kBase: {
-            signature: string;
+            signatures: string;
             url: string;
         }
         p4kBaseVerificationFile: {
-            signature: string;
+            signatures: string;
             url: string;
         }
         platformId: string;
@@ -141,4 +141,10 @@ export interface RsiLauncherReleaseInfoResponse {
         version: string;
         versionLabel: string;
     }
+}
+
+export interface BasicResponseBody {
+    success: number;
+    code: string;
+    msg: string;
 }

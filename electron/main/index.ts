@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, globalShortcut } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, globalShortcut, session, clipboard } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { chooseFile, extractZipToPath } from '../uitils/files'
@@ -50,8 +50,13 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
 const preload = join(__dirname, '../preload/index.js')
+const rsi_preload = join(__dirname, '../preload/rsi.js')
 const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
+const extensionPath = join(process.env.DIST_ELECTRON, '../extensions')
+const extensionNames = [
+  'ccugame.6.0.2_0'
+]
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -103,6 +108,47 @@ async function createWindow() {
 
 app.whenReady().then(() => { 
   createWindow()
+
+  ipcMain.handle('set-web-cookie', (event, cookie: any): Promise<any> => {
+    return session.defaultSession.cookies.set(cookie)
+  })
+
+  ipcMain.handle('open-rsi-web', (event, url: string): Promise<any> => {
+    const rsiWebWindow = new BrowserWindow({
+      width: 1200,
+      height: 800,
+      webPreferences: {
+        preload: rsi_preload,
+        nodeIntegration: true,
+        contextIsolation: false,
+        webSecurity: false,
+        sandbox:false,
+        allowRunningInsecureContent: true
+      },
+      backgroundColor: '#222222'
+    })
+
+    rsiWebWindow.setMinimumSize(1200, 800)
+    rsiWebWindow.setMenu(null)
+
+    // rsiWebWindow.once('ready-to-show', () => {
+    //   rsiWebWindow.show()
+    // })
+
+    if (process.env.VITE_DEV_SERVER_URL) { // electron-vite-vue#298
+      rsiWebWindow.loadURL(url)
+      // Open devTool if the app is not packaged
+      rsiWebWindow.on("ready-to-show", () => {
+        rsiWebWindow.webContents.openDevTools();
+      });
+    } else {
+      rsiWebWindow.loadURL(url)
+    }
+    // ipcMain.handle('share-data', (event, data) => {
+    //   rsiWebWindow.webContents.send('share-data', data)
+    // })
+    return 
+  })
   
   globalShortcut.register('CommandOrControl+Shift+I', () => {
     BrowserWindow.getFocusedWindow().webContents.openDevTools();
@@ -119,6 +165,16 @@ app.whenReady().then(() => {
   ipcMain.handle('get-app-path', (event) => {
     return app.getAppPath();
   })
+
+
+  // extensionNames.forEach((name) => {
+  //   const myExtension = path.join(extensionPath, name);
+  //   console.log(`loading extension ${myExtension}`)
+  //   console.log('extensionPath', myExtension);
+  //   session.defaultSession.loadExtension(myExtension);
+  // });
+
+
 })
 
 app.on('window-all-closed', () => {
@@ -178,6 +234,13 @@ ipcMain.handle('rsi-api-get', (event, url: string, headers: any): Promise<any> =
   return RsiGet(url, headers)
 })
 
+ipcMain.handle('write-to-clipboard', (event, text: string): void => {
+  clipboard.writeText(text)
+})
+
+ipcMain.handle('open-external', (event, url: string): void => {
+  shell.openExternal(url)
+})
 
 
 
@@ -234,3 +297,6 @@ function uncompressAndUpdate(version: string) {
     fs.renameSync(`${distElectronFolderPath}.back`, distElectronFolderPath);
   }
 }
+
+// loadExtensions();
+

@@ -6,7 +6,8 @@ export interface ContainItem {
     image: string,
     title: string,
     type: string,
-    manufacturer: string
+    manufacturer: string,
+    currentPrice?: number,
 }
 
 export interface UpgradeDetail {
@@ -51,7 +52,6 @@ function parseStringToHtml(html: string): HTMLElement {
 }
 
 function parsePrice(price: string): number {
-
     if (price.includes('USD')) {
         return parseFloat(price.replace('USD', '').replace(',', '').replace('$', '').trim())
     } else {

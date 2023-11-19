@@ -69,6 +69,7 @@ export default {
                             this.isMultiStepVisible = false
                             this.loginEmailInputValue = ''
                             this.loginPasswordInputValue = ''
+                            window.location.hash = '#/'
                           })
                         } catch (err) {
                           console.log(err)
@@ -97,7 +98,7 @@ export default {
             }
             if (this.loginEmailInputValue && this.loginPasswordInputValue) {
                 rsiForceLogin(this.loginEmailInputValue, this.loginPasswordInputValue).then((res) => {
-                    console.log(res)
+                    // console.log(res)
                     if (res) {
                         getUser(res.data.account_signin.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
                           try {
@@ -108,6 +109,7 @@ export default {
                           })
                             this.loginEmailInputValue = ''
                             this.loginPasswordInputValue = ''
+                            window.location.hash = '#/'
                           } catch (err) {
                               this.notification.error({
                               title: '登录失败',

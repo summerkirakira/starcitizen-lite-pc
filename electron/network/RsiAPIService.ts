@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios"
-import { BasicGraphqlPostBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherReleaseInfoResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
+import { BasicGraphqlPostBody, BasicResponseBody, RsiGameTokenResponse, RsiLauncherClaimResponse, RsiLauncherLibraryResponse, RsiLauncherReleaseInfoResponse, RsiLauncherSigninResponse, RsiLoginResponse, RsiValidateToken } from "./RsiAPIProperty"
 import { getCookie } from "../uitils/cookies-manager"
 import { ipcRenderer } from "electron"
 import { getRefugeSettings } from "../uitils/settings"
@@ -34,6 +34,16 @@ export async function RsiGet<T>(url: string, headers: any): Promise<T> {
     return data
 }
 
+export async function RsiGetWithCookie<T>(url: string, headers: any): Promise<AxiosResponse<T>> {
+    const response = await ipcRenderer.invoke('rsi-api-get', url, headers)
+    return response
+}
+
+export async function RsiPostWithCookie<T>(url: string, postData: any, headers: any): Promise<T> {
+    const response = await ipcRenderer.invoke('rsi-api-post', url, postData, headers)
+    return response
+}
+
 
 async function RsiLogin(email: string, password: string, captcha: string, remember: boolean, headers: any): Promise<AxiosResponse> {
     const postData: BasicGraphqlPostBody = {
@@ -46,7 +56,7 @@ async function RsiLogin(email: string, password: string, captcha: string, rememb
         }
     }
     const data = await ipcRenderer.invoke('rsi-api-post-with-full-response', 'graphql', postData, headers) as RsiLoginResponse
-    return data
+    return data as any
 }
 
 async function MultiStepRsiLogin(code: string, headers: any): Promise<RsiLoginResponse> {
@@ -154,7 +164,7 @@ export class RsiApiService {
     }
 
     async getLibrary(): Promise<RsiLauncherLibraryResponse> {
-        const library = await RsiPost<RsiLauncherLibraryResponse>('api/launcher/v3/games/library', { "claims": window.webSettings.claims }, {
+        const library = await RsiPost<RsiLauncherLibraryResponse>('api/launcher/v3/games/library', { "claims": (await window.RsiApi.getClaims()).data }, {
             'x-rsi-token': window.webSettings.rsi_token,
             'x-rsi-device': window.webSettings.rsi_device,
         })
@@ -199,7 +209,7 @@ export class RsiApiService {
         }
         
     }
-    async getReleaseInfo(channelId: string, claims: string, gameId: string, platformId: string) {
+    async getReleaseInfo(channelId: string, claims: string, gameId: string, platformId: string): Promise<RsiLauncherReleaseInfoResponse> {
         const postData = {
             "channelId": channelId,
             "claims": claims,
@@ -211,5 +221,47 @@ export class RsiApiService {
             'x-rsi-device': window.webSettings.rsi_device,
         })
         return releaseInfo
-    } 
+    }
+
+    async reclaimPledge(pledge_id: string, current_password: string): Promise<BasicResponseBody> {
+        const postData = {
+            "current_password": current_password,
+            "pledge_id": pledge_id
+        }
+        const headers = this.getHeaders()
+        headers['x-rsi-token'] = window.webSettings.rsi_token
+        const response = await RsiPostWithCookie<BasicResponseBody>('api/account/reclaimPledge', postData, headers)
+        return response
+    }
+
+    async reclaimPledges(pledge_ids: number[], current_password: string): Promise<BasicResponseBody[]> {
+        const responses: BasicResponseBody[] = []
+        for (const pledge_id of pledge_ids) {
+            responses.push(await this.reclaimPledge(pledge_id.toString(), current_password))
+        }
+        return responses
+    }
+
+    async giftPledge(pledge_id: string, current_password: string, email: string, name: string) {
+        const postData = {
+            "current_password": current_password,
+            "email": email,
+            "name": name,
+            "pledge_id": pledge_id
+        }
+        const headers = this.getHeaders()
+        headers['x-rsi-token'] = window.webSettings.rsi_token
+        const response = await RsiPostWithCookie<BasicResponseBody>('api/account/giftPledge', postData, headers)
+        return response
+    }
+
+    async undoGiftPledge(pledge_id: string) {
+        const postData = {
+            "pledge_id": pledge_id
+        }
+        const headers = this.getHeaders()
+        headers['x-rsi-token'] = window.webSettings.rsi_token
+        const response = await RsiPostWithCookie<BasicResponseBody>('api/account/cancelGift', postData, headers)
+        return response
+    }
 }

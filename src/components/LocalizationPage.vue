@@ -1,16 +1,14 @@
 <script lang="ts">
-import { NButton, NDropdown, useNotification } from 'naive-ui'
+import { NButton, NDropdown, NResult, useNotification } from 'naive-ui'
 import { RefugeSettings } from '../../electron/settings/refuge_settings'
 import Store  from 'electron-store'
 import path from 'path'
-import { installLocalization, validateFolder } from '../../electron/uitils/files'
+import { installLocalization, validateFolder, getCurrentGameInfo } from '../../electron/uitils/files'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import fs from 'fs'
 import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
 import { startGame } from '../../electron/uitils/start-game'
-import { getUser } from '../../electron/network/user-parser/UserParser'
-import { refreshBuybackItems } from '../../electron/network/buyback-parser/BuyBackParser'
 
 const store = new Store()
 
@@ -280,11 +278,47 @@ export default {
             //         }
             //     )
             // })
+        },
+        checkGameIsUpdated() {
+            const refugeSettings = getRefugeSettings()
+            if (refugeSettings.gameSettings == null || refugeSettings.gameSettings.currentGamePath == null) {
+                return
+            }
+            const localGameInfo = getCurrentGameInfo()
+            if (localGameInfo == null) {
+                return
+            }
+            const gamePath = refugeSettings.gameSettings.currentGamePath
+            let channelId = ""
+            if (gamePath.includes('/')){
+                channelId = gamePath.split('/').pop() as string
+            } else {
+                channelId = gamePath.split('\\').pop() as string
+            }
+            console.log(channelId)
+            window.RsiApi.getClaims().then((claims) => {
+                window.RsiApi.getReleaseInfo(channelId, claims.data, 'SC', 'prod').then((res) => {
+                    console.log(res)
+                    const latestVersion = parseInt(res.data.versionLabel.split('.').pop())
+                    const currentVersion = parseInt(localGameInfo.RequestedP4ChangeNum)
+                    if (latestVersion > currentVersion) {
+                        this.notification.error({
+                            title: '游戏更新提示',
+                            content: `当前本地游戏版本为${localGameInfo.Branch}, 而服务器版本为${res.data.versionLabel}, 请在官方启动器更新游戏后再使用避难所启动游戏。`
+                        })
+                    }
+                }).catch((err) => {
+                    console.log(err)
+                })
+            }).catch((err) => {
+                console.log(err)
+            })
         }
     },
     mounted() {
         this.updateLocalizationInfo()
         this.checkUpdate()
+        this.checkGameIsUpdated()
     }
 }
 </script>

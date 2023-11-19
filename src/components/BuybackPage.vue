@@ -106,6 +106,19 @@ export default {
         const refugeSettings = getRefugeSettings()
         if (refugeSettings.currentUser == null) {
             window.location.hash = '#/login'
+            return
+        }
+    },
+    methods: {
+        async handleRefreshBtnClicked() {
+            this.table_data = await refreshBuybackItemTable()
+        }
+        
+    },
+    activated() {
+        const refuge_settings = getRefugeSettings()
+        if (refuge_settings.currentUser == null) {
+            window.location.hash = '#/login'
             this.notification.error({
                 title: '未登录',
                 content: '登录后才能查看回购列表哦'
@@ -129,12 +142,6 @@ export default {
             })
             this.loadingBar.error()
         })
-    },
-    methods: {
-        async handleRefreshBtnClicked() {
-            this.table_data = await refreshBuybackItemTable()
-        }
-        
     },
     data() {
         return {
@@ -184,7 +191,7 @@ export default {
                     }
                     
                 },
-            ],
+            ] as any[],
             rowClassName (row: BuybackItemTableData) {
                 if (row.title.includes('Upgrade')) {
                     // console.log(row)

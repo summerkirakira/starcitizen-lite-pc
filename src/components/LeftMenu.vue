@@ -18,7 +18,6 @@
     ChatboxEllipsesOutline as ChatboxIcon
   } from '@vicons/ionicons5'
 import { useNotification } from 'naive-ui'
-import { getRefugeSettings } from '../../electron/uitils/settings'
   
   function renderIcon (icon: Component) {
     // if (icon === PersonIcon) {
@@ -45,7 +44,7 @@ import { getRefugeSettings } from '../../electron/uitils/settings'
         h(
           'a',
           {
-            href: '#/login',
+            href: '#/user-profile',
           },
           '账号信息'
         ),
@@ -103,14 +102,14 @@ import { getRefugeSettings } from '../../electron/uitils/settings'
     {
       label: () =>
         h(
-          'span',
-          // {
-          //   href: '#/localization',
-          // },
+          'a',
+          {
+            href: '#/utilities',
+          },
           '实用工具'
         ),
       key: 'my-tools',
-      disabled: true,
+      disabled: false,
       icon: renderIcon(BuildIcon)
     },
     {
@@ -161,7 +160,7 @@ import { getRefugeSettings } from '../../electron/uitils/settings'
             this.selectOpition = clickValue
         },
         showNotInplementedNotificaiton(key: string, option: MenuOption) {
-          if (key === 'my-tools' || key === 'my-settings')
+          if (key === 'my-settings')
             this.notification.warning({
                 title: '当前功能还在开发中哦',
                 content: '请耐心等待避难所PC更新'

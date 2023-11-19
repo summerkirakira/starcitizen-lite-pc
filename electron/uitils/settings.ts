@@ -15,13 +15,27 @@ export function setRefugeSettings(settings: RefugeSettings) {
 }
 
 export function addUserToDatabase(new_user: User) {
-    const users = store.get('users', []) as User[] 
+    let users = store.get('users', []) as User[] 
+    users = users.filter((u) => {
+        return u.id !== new_user.id && u.handle !== new_user.handle
+    })
+    users.push(new_user)
+    store.set('users', users)
+}
+
+export function removeDuplicateUserFromDatabase() {
+    let users = store.get('users', []) as User[]
+    const userNames = new Set<string>()
     for (const user of users) {
-        if (user.id === new_user.id) {
-            return
+        if (userNames.has(user.handle)) {
+            user.id = -1
+        } else {
+            userNames.add(user.handle)
         }
     }
-    users.push(new_user)
+    users = users.filter((u) => {
+        return u.id !== -1
+    })
     store.set('users', users)
 }
 
@@ -30,6 +44,9 @@ export function getUsersFromDatabase(): User[] {
 }
 
 export function removeUserFromDatabase(user: User) {
+    const refuge_settings = getRefugeSettings()
+    refuge_settings.currentUser = null
+    setRefugeSettings(refuge_settings)
     const users = store.get('users', []) as User[]
     const new_users = users.filter((u) => {
         return u.id !== user.id

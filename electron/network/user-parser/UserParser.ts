@@ -22,7 +22,10 @@ export async function getUser(login_id: number, email: string, password: string)
 
     const billing_page = parseStringToHtml(await window.RsiApi.getPage('account/billing'))
 
-    const total_spent = parseFloat(billing_page.querySelectorAll('.credit-line')[0].textContent.replace('$', '').replace('USD', '').replace(",", '').trim())
+    const spent_lines = billing_page.querySelectorAll('.spent-line')
+    console.log(spent_lines)
+    const lastElement = Array.from(spent_lines).pop();
+    const total_spent = parseFloat(lastElement.querySelector('em').textContent.replace('$', '').replace('USD', '').replace(",", '').trim()) * 100
     const is_concierge = billing_page.querySelector('.c-account-sidebar__links-link--concierge') != null
     const is_subscriber = billing_page.querySelector('.c-account-sidebar__links-link--subscriber') != null
 
