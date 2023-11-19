@@ -8,12 +8,13 @@ import BuybackPage from './BuybackPage.vue'
 import BugReportPage from './BugReportPage.vue'
 import UtilitiesPage from './UtilitiesPage.vue'
 import { KeepAlive } from 'vue'
-import { useNotification, useMessage } from 'naive-ui'
+import { useNotification, useMessage, NModal } from 'naive-ui'
 import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
 import UserProfile from './UserProfile.vue'
 import { applyUserSettings, rsiForceLogin } from '../../electron/uitils/signin'
 import Store from 'electron-store'
 import {removeUserFromDatabase } from '../../electron/uitils/settings';
+
 
 const store = new Store()
 
@@ -36,7 +37,9 @@ export default {
     return {
       currentPath: window.location.hash,
       notification,
-      message
+      message,
+      showUpdateModal: false,
+      updateContent: '',
     }
   },
   computed: {
@@ -56,15 +59,6 @@ export default {
     }).catch((err) => {
       console.log(err)
     })
-
-    const recently_update = store.get('recently_update', null)
-    if (recently_update !== null) {
-      this.notification.success({
-        title: '更新成功',
-        content: `星河避难所已更新到版本: ${recently_update}`
-      })
-      store.set('recently_update', null)
-    }
 
     const refugeSettings = getRefugeSettings()
     window.addEventListener('hashchange', () => {
@@ -120,6 +114,52 @@ export default {
       setRefugeSettings(refugeSettings)
     })
     }
+
+    let vm = this
+    vm.ipcRenderer = window.ipcRenderer
+
+    vm.ipcRenderer.on('updateAvailable', (event, info) => {
+      console.log('updateAvailable', info)
+      this.updateContent = `检测到新版本${info.version}, 是否立即升级？`
+      this.showUpdateModal = true
+    })
+
+    vm.ipcRenderer.on('message', (event, data) => {
+      console.log('message', data.msg)
+    })
+    vm.ipcRenderer.on('downloadProgress', (event, progressObj) => {
+      console.log('downloadProgress', progressObj)
+      // 可自定义下载渲染效果
+    })
+    vm.ipcRenderer.on('isUpdateNow', (event, versionInfo) => {
+        // 自定义选择效果，效果自行编写
+        this.notification.info({
+          title: '更新提示',
+          content: '下载完成，避难所将自动重启'
+        })
+        vm.ipcRenderer.send('updateNow')
+    })
+    vm.autoUpdate() // electron应用启动后主动触发检查更新函数
+  },
+  beforeDestroy() {
+    // 移除ipcRenderer所有事件
+    this.ipcRenderer.removeAllListeners()
+  },
+  methods: {
+    autoUpdate () { // 用来触发更新函数
+      this.ipcRenderer.send('checkForUpdate')
+    },
+    updateCheckedHandler() {
+      this.showUpdateModal = false
+      this.ipcRenderer.send('downloadNow')
+      this.notification.info({
+        title: '开始下载',
+        content: '正在下载更新包, 请勿退出程序，下载完成后避难所将自动重启'
+      })
+    }
+  },
+  components: {
+    NModal
   }
 }
 
@@ -131,6 +171,16 @@ export default {
         </KeepAlive>
         
     </div>
+    <n-modal
+      v-model:show="showUpdateModal"
+      preset="dialog"
+      title="更新提示"
+      :content="updateContent"
+      positive-text="确认"
+      negative-text="取消"
+      @positive-click="updateCheckedHandler"
+      @negative-click="showUpdateModal = false"
+    />
 </template>
 
 <style>
