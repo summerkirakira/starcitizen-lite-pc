@@ -1,6 +1,6 @@
 {
   "name": "starcitizenlite-pc",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "main": "dist-electron/main/index.js",
   "description": "",
   "author": "Summerkirakira <summerkirakira@gmail.com>",
