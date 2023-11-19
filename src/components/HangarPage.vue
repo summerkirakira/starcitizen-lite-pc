@@ -211,10 +211,6 @@ export default {
         const refugeSettings = getRefugeSettings()
         if (refugeSettings.currentUser == null) {
             window.location.hash = '#/login'
-            this.notification.error({
-                title: '未登录',
-                content: '登录后才能查看机库列表哦'
-            })
             return
         }
         this.table_data = getCachedHangarItemTable()
@@ -558,6 +554,17 @@ export default {
                         value: prefix + suffix
                     }
                 })
+        }
+    },
+    activated() {
+        const refuge_settings = getRefugeSettings()
+        if (refuge_settings.currentUser == null) {
+            window.location.hash = '#/login'
+            this.notification.error({
+                title: '未登录',
+                content: '登录后才能查看机库列表哦'
+            })
+            return
         }
     }
 }

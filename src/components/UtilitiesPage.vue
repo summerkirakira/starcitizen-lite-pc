@@ -13,6 +13,8 @@ import {
 
 import { useNotification, useLoadingBar, useMessage } from 'naive-ui'
 
+import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
+
 
 export default {
     setup() {
@@ -88,6 +90,17 @@ export default {
       NModal,
       NSelect,
       NScrollbar
+    },
+    activated() {
+        const refuge_settings = getRefugeSettings()
+        if (refuge_settings.currentUser == null) {
+            window.location.hash = '#/login'
+            this.notification.error({
+                title: '未登录',
+                content: '登录后才能使用实用工具哦'
+            })
+            return
+        }
     },
     data() {
         return {

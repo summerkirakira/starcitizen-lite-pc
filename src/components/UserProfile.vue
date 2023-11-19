@@ -38,7 +38,8 @@ export default {
     },
     data() {
         return {
-            refresh_key: 0
+            refresh_key: 0,
+            showLeftCard: false,
         }
     },
     // mounted() {
@@ -54,10 +55,8 @@ export default {
             window.location.hash = '#/login'
             return
         }
-        if (this.currentUser == null) {
-            this.currentUser = refugeSettings.currentUser
-            this.refresh_key += 1
-        }
+        this.showLeftCard = true
+        this.currentUser = refugeSettings.currentUser
         removeDuplicateUserFromDatabase()
         const users = getUsersFromDatabase()
         this.options = []
@@ -71,7 +70,6 @@ export default {
             label: '登录新账号',
             key: 'add_new_user'
         })
-        this.currentUser = refugeSettings.currentUser
         this.currentUserName = refugeSettings.currentUser.handle
         echarts.use([
             TooltipComponent,
@@ -88,6 +86,9 @@ export default {
         ]);
         this.createCharts(true)
         this.refreshUserData()
+        // this.$nextTick(() => {
+        //     this.refresh_key += 1
+        // })
     },
     methods: {
         handleSelect() {
@@ -133,7 +134,6 @@ export default {
                 setRefugeSettings(refugeSettings)
                 this.currentUser = user
                 this.refresh_key += 1
-                this.createCharts()
             })
         },
         createCharts(needRefresh: boolean = false) {
@@ -161,8 +161,13 @@ export default {
         handleRemoveUser(){
             removeUserFromDatabase(this.currentUser)
             const users = getUsersFromDatabase()
+            users.filter((user) => {
+                return user.handle != this.currentUser.handle
+            })
             if (users.length == 0) {
+                this.showLeftCard = false
                 window.location.hash = '#/login'
+                return
             } else {
                 this.updateUser(users[0].handle)
             }
@@ -206,76 +211,74 @@ export default {
 }
 </script>
 <template>
-    <n-space id="container" v-if="currentUser != null" :key="refresh_key">
-
-        <!-- <n-dropdown :options="options" @select="handleSelect">
-            <n-button>{{ currentUserName }}</n-button>
-        </n-dropdown> -->
-
-        <n-card style="width: 400px;" hoverable>
-            <!-- <template #header-extra>
-            #header-extra
-            </template> -->
-            <div style="display: flex; gap: 0px;">
-                <n-avatar
-                round
-                :size="80"
-                fallback-src="https://cdn.robertsspaceindustries.com/static/images/account/avatar_default_big.jpg"
-                :src="currentUserImage"/>
+    <n-space id="container">
+        <template v-if="showLeftCard">
+            <n-card style="width: 400px;" hoverable :key="refresh_key">
+                <!-- <template #header-extra>
+                #header-extra
+                </template> -->
+                <div style="display: flex; gap: 0px;">
+                    <n-avatar
+                    round
+                    :size="80"
+                    :key="refresh_key"
+                    fallback-src="https://cdn.robertsspaceindustries.com/static/images/account/avatar_default_big.jpg"
+                    :src="`https://robertsspaceindustries.com${currentUser.profile_image}`"/>
+                    <div>
+                        <p style="font-size: 22px; padding-left: 20px; padding-top: 10px; margin: 0px; text-align: left;">{{ currentUser.handle }}</p>
+                        <p style="font-size: 16px; padding-left: 20px; padding-top: 0px; margin: 0px; text-align: left;">{{ currentUser.name }}</p>
+                    </div>
+                </div>
                 <div>
-                    <p style="font-size: 22px; padding-left: 20px; padding-top: 10px; margin: 0px; text-align: left;">{{ currentUser.handle }}</p>
-                    <p style="font-size: 16px; padding-left: 20px; padding-top: 0px; margin: 0px; text-align: left;">{{ currentUser.name }}</p>
-                </div>
-            </div>
-            <div>
-                <n-divider />
-                <div id="user-profile">
-                    <n-space justify="space-between">
-                        <p>注册时间</p>
-                        <p>{{ this.formatDate(currentUser.register_time) }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>所属舰队</p>
-                        <p>{{ currentUser.org_name }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>舰队等级</p>
-                        <p>{{ currentUser.org_rank }}</p>
-                    </n-space>
                     <n-divider />
-                    <n-space justify="space-between">
-                        <p>机库价值</p>
-                        <p>{{ `${currentUser.hangar_value / 100} USD` }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>消费额 / 当前信用点</p>
-                        <p>{{ `${currentUser.total_spent / 100} USD / ${currentUser.usd} USD` }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>UEC</p>
-                        <p>{{ `${currentUser.uec} UEC` }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>REC</p>
-                        <p>{{ `${currentUser.rec} REC` }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>邀请码</p>
-                        <p>{{ `${currentUser.referral_code}` }}</p>
-                    </n-space>
-                    <n-space justify="space-between">
-                        <p>邀请人数 / 未购买游戏包人数</p>
-                        <p>{{ `${currentUser.referral_count} / ${currentUser.referral_prospects}人` }}</p>
-                    </n-space>
+                    <div id="user-profile">
+                        <n-space justify="space-between">
+                            <p>注册时间</p>
+                            <p>{{ this.formatDate(currentUser.register_time) }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>所属舰队</p>
+                            <p>{{ currentUser.org_name }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>舰队等级</p>
+                            <p>{{ currentUser.org_rank }}</p>
+                        </n-space>
+                        <n-divider />
+                        <n-space justify="space-between">
+                            <p>机库价值</p>
+                            <p>{{ `${currentUser.hangar_value / 100} USD` }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>消费额 / 当前信用点</p>
+                            <p>{{ `${currentUser.total_spent / 100} USD / ${currentUser.usd} USD` }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>UEC</p>
+                            <p>{{ `${currentUser.uec} UEC` }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>REC</p>
+                            <p>{{ `${currentUser.rec} REC` }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>邀请码</p>
+                            <p>{{ `${currentUser.referral_code}` }}</p>
+                        </n-space>
+                        <n-space justify="space-between">
+                            <p>邀请人数 / 未购买游戏包人数</p>
+                            <p>{{ `${currentUser.referral_count} / ${currentUser.referral_prospects}人` }}</p>
+                        </n-space>
+                    </div>
                 </div>
-            </div>
-            <template #action>
-                <n-space justify="end">
-                    <n-button strong secondary type="default" style="width: 100%;" @click="handleRemoveUser">退出登录</n-button>
-                    <n-button type="primary" style="width: 100%;" @click="handleSelect">切换账号</n-button>
-                </n-space>
-            </template>
-        </n-card>
+                <template #action>
+                    <n-space justify="end">
+                        <n-button strong secondary type="default" style="width: 100%;" @click="handleRemoveUser">退出登录</n-button>
+                        <n-button type="primary" style="width: 100%;" @click="handleSelect">切换账号</n-button>
+                    </n-space>
+                </template>
+            </n-card>
+        </template>
         <n-space vertical>
             <n-card title="账单统计" style="width: 500px;" hoverable>
                 <div id="spent_echarts_container" style="width: 100%; height: 300px;" />

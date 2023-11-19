@@ -13,6 +13,7 @@ import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/sett
 import UserProfile from './UserProfile.vue'
 import { applyUserSettings, rsiForceLogin } from '../../electron/uitils/signin'
 import Store from 'electron-store'
+import {removeUserFromDatabase } from '../../electron/uitils/settings';
 
 const store = new Store()
 
@@ -104,6 +105,7 @@ export default {
             content: `请重新登录 (${err.message}})`
           })
           const refugeSettings = getRefugeSettings()
+          removeUserFromDatabase(refugeSettings.currentUser)
           refugeSettings.currentUser = null
           setRefugeSettings(refugeSettings)
         })
