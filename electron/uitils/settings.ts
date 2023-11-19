@@ -44,6 +44,9 @@ export function getUsersFromDatabase(): User[] {
 }
 
 export function removeUserFromDatabase(user: User) {
+    const refuge_settings = getRefugeSettings()
+    refuge_settings.currentUser = null
+    setRefugeSettings(refuge_settings)
     const users = store.get('users', []) as User[]
     const new_users = users.filter((u) => {
         return u.id !== user.id

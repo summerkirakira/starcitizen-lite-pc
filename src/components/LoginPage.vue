@@ -69,7 +69,7 @@ export default {
                             this.isMultiStepVisible = false
                             this.loginEmailInputValue = ''
                             this.loginPasswordInputValue = ''
-                            window.location.hash = '#/user-profile'
+                            window.location.hash = '#/'
                           })
                         } catch (err) {
                           console.log(err)
@@ -109,7 +109,7 @@ export default {
                           })
                             this.loginEmailInputValue = ''
                             this.loginPasswordInputValue = ''
-                            window.location.hash = '#/user-profile'
+                            window.location.hash = '#/'
                           } catch (err) {
                               this.notification.error({
                               title: '登录失败',

@@ -45,6 +45,17 @@ export default {
   },
   mounted() {
 
+    window.CirnoApi.getAnnouncement().then((res) => {
+      if (res !== null) {
+        this.notification.info({
+          title: res.title,
+          content: res.content
+        })
+      }
+    }).catch((err) => {
+      console.log(err)
+    })
+
     const recently_update = store.get('recently_update', null)
     if (recently_update !== null) {
       this.notification.success({

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { getRefugeSettings, getUsersFromDatabase, removeDuplicateUserFromDatabase, setRefugeSettings } from '../../electron/uitils/settings';
+import { getRefugeSettings, getUsersFromDatabase, removeDuplicateUserFromDatabase, setRefugeSettings, removeUserFromDatabase } from '../../electron/uitils/settings';
 import { NAvatar, NDropdown, NButton, NCard, NSpace, NDivider, NModal, NPopselect } from 'naive-ui';
 import { formatTime } from '../../electron/uitils/basic';
 import { refreshBillingItems, getStoredBillingItems, BillingItem } from '../../electron/network/billing-parser/BillingParser';
@@ -33,7 +33,11 @@ export default {
             options: [],
             currentUser: refugeSettings.currentUser,
             isUserChooseModalVisible: ref(false),
-            chooseValue: ref(''),
+            chooseValue: ref('')
+        }
+    },
+    data() {
+        return {
             refresh_key: 0
         }
     },
@@ -145,11 +149,47 @@ export default {
             if (needRefresh) {
                     refreshBillingItems().then((billingItems: BillingItem[]) => {
                         console.log(billingItems)
-                    let option = getBillingsEchartOptions(billingItems);
-                    billingChart.setOption(option);
-                    let timeOption = getTimeBillingEchartOptions(billingItems);
-                    timeChart.setOption(timeOption);
+                        let option = getBillingsEchartOptions(billingItems)
+                        console.log(option)
+                        billingChart.setOption(option);
+                        let timeOption = getTimeBillingEchartOptions(billingItems);
+                        console.log(timeOption)
+                        timeChart.setOption(timeOption);
                 })
+            }
+        },
+        handleRemoveUser(){
+            removeUserFromDatabase(this.currentUser)
+            const users = getUsersFromDatabase()
+            if (users.length == 0) {
+                window.location.hash = '#/login'
+            } else {
+                this.updateUser(users[0].handle)
+            }
+            const newOptions = []
+            users.forEach((user) => {
+                newOptions.push({
+                    label: user.handle,
+                    key: user.handle
+                })
+            })
+            newOptions.push({
+                label: '登录新账号',
+                key: 'add_new_user'
+            })
+            this.options = newOptions
+            this.currentUser = users[0]
+            console.log(this.currentUser)
+            this.refresh_key += 1
+            // window.location.hash = '#/user-profile'
+        }
+    },
+    computed: {
+        currentUserImage() {
+            if (this.currentUser.profile_image.startsWith('/')) {
+                return `https://robertsspaceindustries.com${this.currentUser.profile_image}`
+            } else {
+                return this.currentUser.profile_image
             }
         }
     },
@@ -181,7 +221,7 @@ export default {
                 round
                 :size="80"
                 fallback-src="https://cdn.robertsspaceindustries.com/static/images/account/avatar_default_big.jpg"
-                :src="`https://robertsspaceindustries.com${currentUser.profile_image}`"/>
+                :src="currentUserImage"/>
                 <div>
                     <p style="font-size: 22px; padding-left: 20px; padding-top: 10px; margin: 0px; text-align: left;">{{ currentUser.handle }}</p>
                     <p style="font-size: 16px; padding-left: 20px; padding-top: 0px; margin: 0px; text-align: left;">{{ currentUser.name }}</p>
@@ -231,7 +271,7 @@ export default {
             </div>
             <template #action>
                 <n-space justify="end">
-                    <n-button strong secondary type="default" style="width: 100%;" @click="handleSelect">退出登录</n-button>
+                    <n-button strong secondary type="default" style="width: 100%;" @click="handleRemoveUser">退出登录</n-button>
                     <n-button type="primary" style="width: 100%;" @click="handleSelect">切换账号</n-button>
                 </n-space>
             </template>
