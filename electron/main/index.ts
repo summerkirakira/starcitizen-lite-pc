@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, globalShortcut, session, clipboard } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, globalShortcut, session, clipboard, nativeTheme } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { chooseFile } from '../uitils/files'
@@ -376,3 +376,18 @@ function updateHandle () {
 function sendUpdateMessage (text) {
   mainWindow.webContents.send('message', text)
 }
+
+ipcMain.handle('dark-mode:toggle', () => {
+  if (nativeTheme.shouldUseDarkColors) {
+    nativeTheme.themeSource = 'light'
+  } else {
+    nativeTheme.themeSource = 'light'
+  }
+  return nativeTheme.shouldUseDarkColors
+})
+
+nativeTheme.themeSource = 'light'
+
+// ipcMain.handle('dark-mode:system', () => {
+//   nativeTheme.themeSource = 'light'
+// })

@@ -3,9 +3,10 @@ import {
     NSpace,
     NDataTable,
     NTag,
-dateEnGB,
-useNotification,
-useLoadingBar
+    dateEnGB,
+    useNotification,
+    useMessage,
+    useLoadingBar
 } from 'naive-ui'
 import { getStoredBuybackItems, refreshBuybackItems, BuybackItem } from '../../electron/network/buyback-parser/BuybackParser'
 import { getHangarItemPrice, getHangarUpgradePrice, translateHangarItemName } from '../../electron/uitils/hangar-util'
@@ -83,6 +84,7 @@ export default {
     setup() {
         const notification = useNotification()
         const loadingBar = useLoadingBar()
+        const message = useMessage()
         return {
             rowProps: (row: BuybackItem) => {
                 return {
@@ -95,7 +97,8 @@ export default {
                 }
             },
             notification,
-            loadingBar
+            loadingBar,
+            message
         }
     },
     components: {
@@ -130,10 +133,7 @@ export default {
         this.loadingBar.start()
         refreshBuybackItemTable().then((table_data) => {
             this.table_data = table_data
-            this.notification.success({
-                title: '刷新回购成功',
-                content: '回购列表已更新'
-            })
+            this.message.success('回购列表已更新')
             this.loadingBar.finish()
         }).catch((err) => {
             this.notification.error({
