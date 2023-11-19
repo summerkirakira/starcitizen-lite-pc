@@ -40,19 +40,27 @@ export default {
         return {
             refresh_key: 0,
             showLeftCard: false,
+            billingChart: null,
+            timeChart: null,
+            showEcharts: false
         }
     },
-    // mounted() {
-    //     const refugeSettings = getRefugeSettings()
-    //     if (refugeSettings.currentUser == null) {
-    //         window.location.hash = '#/login'
-    //         return
-    //     }
-    // },
+    mounted() {
+        const refugeSettings = getRefugeSettings()
+        if (refugeSettings.currentUser == null) {
+            window.location.hash = '#/login'
+            return
+        }
+        // this.createCharts()
+    },
     activated() {
         const refugeSettings = getRefugeSettings()
         if (refugeSettings.currentUser == null) {
             window.location.hash = '#/login'
+            // this.showLeftCard = false
+            this.showEcharts = false
+            this.billingChart = null
+            this.timeChart = null
             return
         }
         this.showLeftCard = true
@@ -86,6 +94,7 @@ export default {
         ]);
         this.createCharts(true)
         this.refreshUserData()
+        console.log(this.billingChart)
         // this.$nextTick(() => {
         //     this.refresh_key += 1
         // })
@@ -137,26 +146,31 @@ export default {
             })
         },
         createCharts(needRefresh: boolean = false) {
-            let chartDom = document.getElementById('spent_echarts_container');
-            let billingChart = echarts.init(chartDom);
             let option = getBillingsEchartOptions(getStoredBillingItems());
-            billingChart.setOption(option);
-
-            let timeChartDom = document.getElementById('time_echarts_container');
-            let timeChart = echarts.init(timeChartDom);
             let timeOption = getTimeBillingEchartOptions(getStoredBillingItems());
-            timeChart.setOption(timeOption);
-            if (needRefresh) {
-                    refreshBillingItems().then((billingItems: BillingItem[]) => {
-                        console.log(billingItems)
-                        let option = getBillingsEchartOptions(billingItems)
-                        console.log(option)
-                        billingChart.setOption(option);
-                        let timeOption = getTimeBillingEchartOptions(billingItems);
-                        console.log(timeOption)
-                        timeChart.setOption(timeOption);
-                })
-            }
+            this.showEcharts = true
+            this.$nextTick(() => {
+                if (this.billingChart == null) {
+                    const chartDom = document.getElementById('spent_echarts_container');
+                    this.billingChart = echarts.init(chartDom);
+                }
+                if (this.timeChart == null) {
+                    const timeChartDom = document.getElementById('time_echarts_container');
+                    this.timeChart = echarts.init(timeChartDom);
+                }
+                this.billingChart.setOption(option);
+                this.timeChart.setOption(timeOption);
+                if (needRefresh) {
+                        refreshBillingItems().then((billingItems: BillingItem[]) => {
+                            console.log(billingItems)
+                            let option = getBillingsEchartOptions(billingItems)
+                            console.log(option)
+                            this.billingChart.setOption(option);
+                            let timeOption = getTimeBillingEchartOptions(billingItems);
+                            this.timeChart.setOption(timeOption);
+                    })
+                }
+            })
         },
         handleRemoveUser(){
             removeUserFromDatabase(this.currentUser)
@@ -279,7 +293,7 @@ export default {
                 </template>
             </n-card>
         </template>
-        <n-space vertical>
+        <n-space vertical v-if="showEcharts">
             <n-card title="账单统计" style="width: 500px;" hoverable>
                 <div id="spent_echarts_container" style="width: 100%; height: 300px;" />
             </n-card>

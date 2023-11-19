@@ -9,6 +9,7 @@ declare global {
     interface Window {
       CirnoApi: CirnoApi
       RsiApi: RsiApiService
+      ipcRenderer: any
       chooseFile: (filter: Filter) => Promise<string[]>
       setWebCookie: (webSettings: any) => void
       openRsiWeb: (url: string) => void

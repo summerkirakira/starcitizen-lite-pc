@@ -120,6 +120,7 @@ window.fileManager.writeToClipboard = (text: string) => ipcRenderer.invoke('writ
 window.openExternal = (url: string) => ipcRenderer.invoke('open-external', url)
 
 window.setWebCookie = (webSettings: any) => ipcRenderer.invoke('set-web-cookie', webSettings)
+window.ipcRenderer = ipcRenderer
 
 ipcRenderer.invoke('get-app-path').then((appPath: string) => {
   // const refugePath = path.join(appPath, 'refuge-pc')

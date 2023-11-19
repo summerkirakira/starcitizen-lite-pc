@@ -1,16 +1,10 @@
 import { app, BrowserWindow, shell, ipcMain, globalShortcut, session, clipboard } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
-import { chooseFile, extractZipToPath } from '../uitils/files'
+import { chooseFile } from '../uitils/files'
 import { CirnoApi, getZipFile } from '../network/CirnoAPIService'
-import { autoUpdater } from 'electron-updater'
 import { RsiGet, RsiPost, RsiPostWithFullResponse, getCsrfToken } from '../network/RsiAPIService'
 import { RsiValidateToken } from '../network/RsiAPIProperty'
-import fs from 'fs'
-import fse from 'fs-extra'
-import path from 'path'
-import { compareVersions } from 'compare-versions'
-import axios from 'axios'
 import Store from 'electron-store'
 
 const store = new Store()
@@ -58,6 +52,8 @@ const extensionNames = [
   'ccugame.6.0.2_0'
 ]
 
+let mainWindow: BrowserWindow | null = null
+
 async function createWindow() {
   win = new BrowserWindow({
     title: '星河避难所',
@@ -99,6 +95,8 @@ async function createWindow() {
 
   win.setMinimumSize(1200, 800)
   win.setMenu(null)
+  mainWindow = win
+  updateHandle()
 
   // ipcMain.on('open-devtools', () => {
   //   win.webContents.openDevTools()
@@ -144,9 +142,6 @@ app.whenReady().then(() => {
     } else {
       rsiWebWindow.loadURL(url)
     }
-    // ipcMain.handle('share-data', (event, data) => {
-    //   rsiWebWindow.webContents.send('share-data', data)
-    // })
     return 
   })
   
@@ -245,58 +240,139 @@ ipcMain.handle('open-external', (event, url: string): void => {
 
 
 
-// Auto Update
+// // Auto Update
 
-const appPath = app.getAppPath();
+// const appPath = app.getAppPath();
 
-const unpackDownloadPath = path.join(appPath, 'app.asar.unpacked.zip');
+// const unpackDownloadPath = path.join(appPath, 'app.asar.unpacked.zip');
 
-const distFolderPath = path.join(appPath, 'dist');
-const distElectronFolderPath = path.join(appPath, 'dist-electron');
+// const distFolderPath = path.join(appPath, 'dist');
+// const distElectronFolderPath = path.join(appPath, 'dist-electron');
 
-const appVersion = '1.0.5';
+// const appVersion = '1.0.5';
 
-console.log('appPath', appPath);
-console.log('appVersion', appVersion);
-console.log('unpackDownloadPath', unpackDownloadPath);
-console.log('untgzPath', distFolderPath);
-
-
-if (process.platform === 'win32') {
-  new CirnoApi().getDesktopVersion().then((version) => {
-    // console.log('desktop version', version);
-    if (compareVersions(version.version, appVersion) > 0) {
-      console.log('new version found');
-      axios.get(version.download_url, {
-        responseType: 'arraybuffer',
-      }).then((response) => {
-        fs.writeFileSync(unpackDownloadPath, response.data);
-        uncompressAndUpdate(version.version);
-      });
-    }
-  });
-}
+// console.log('appPath', appPath);
+// console.log('appVersion', appVersion);
+// console.log('unpackDownloadPath', unpackDownloadPath);
+// console.log('untgzPath', distFolderPath);
 
 
-function uncompressAndUpdate(version: string) {
-  // 先备份当前的 app.asar.unpacked 目录
-  fse.renameSync(distFolderPath, `${distFolderPath}.back`);
-  fse.renameSync(distElectronFolderPath, `${distElectronFolderPath}.back`);
-  try {
-    extractZipToPath(unpackDownloadPath, appPath);
-    fse.removeSync(`${distFolderPath}.back`);
-    fse.removeSync(`${distElectronFolderPath}.back`);
-    fse.removeSync(unpackDownloadPath);
-    store.set('recently_update', version);
-    app.relaunch();
-    app.exit(0);
-  } catch (err) {
-    // 记录错误日志
-    console.log(err);
-    fs.renameSync(`${distFolderPath}.back`, distFolderPath);
-    fs.renameSync(`${distElectronFolderPath}.back`, distElectronFolderPath);
-  }
-}
+// if (process.platform === 'win32') {
+//   new CirnoApi().getDesktopVersion().then((version) => {
+//     // console.log('desktop version', version);
+//     if (compareVersions(version.version, appVersion) > 0) {
+//       console.log('new version found');
+//       axios.get(version.download_url, {
+//         responseType: 'arraybuffer',
+//       }).then((response) => {
+//         fs.writeFileSync(unpackDownloadPath, response.data);
+//         uncompressAndUpdate(version.version);
+//       });
+//     }
+//   });
+// }
+
+
+// function uncompressAndUpdate(version: string) {
+//   // 先备份当前的 app.asar.unpacked 目录
+//   fse.renameSync(distFolderPath, `${distFolderPath}.back`);
+//   fse.renameSync(distElectronFolderPath, `${distElectronFolderPath}.back`);
+//   try {
+//     extractZipToPath(unpackDownloadPath, appPath);
+//     fse.removeSync(`${distFolderPath}.back`);
+//     fse.removeSync(`${distElectronFolderPath}.back`);
+//     fse.removeSync(unpackDownloadPath);
+//     store.set('recently_update', version);
+//     app.relaunch();
+//     app.exit(0);
+//   } catch (err) {
+//     // 记录错误日志
+//     console.log(err);
+//     fs.renameSync(`${distFolderPath}.back`, distFolderPath);
+//     fs.renameSync(`${distElectronFolderPath}.back`, distElectronFolderPath);
+//   }
+// }
 
 // loadExtensions();
 
+// ------------------------------------------------------------------------
+
+// App Update
+
+// Object.defineProperty(app, 'isPackaged', { // remove when released
+//   get() {
+//     return true;
+//   }
+// });
+
+const { autoUpdater } = require('electron-updater')
+const server = 'http://127.0.0.1';
+const updateUrl = `${server}/update/${process.platform}`;
+// 检测更新，在你想要检查更新的时候执行，renderer事件触发后的操作自行编写
+function updateHandle () {
+  let message = {
+    error: {status: -1, msg: '检测更新查询异常'},
+    checking: {status: 0, msg: '正在检查更新...'},
+    updateAva: {status: 1, msg: '检测到新版本,正在下载,请稍后'},
+    updateNotAva: {status: 2, msg: '您现在使用的版本为最新版本,无需更新!'},
+  }
+  let versionInfo = ''
+  console.log('updateUrl', updateUrl)
+  autoUpdater.setFeedURL(updateUrl)
+  autoUpdater.autoDownload = false
+  autoUpdater.checkForUpdates().then(function (data) {
+    console.log('checkForUpdates', data)
+  })
+  // console.log('updateHandle', autoUpdater.getFeedURL())
+// 检测更新查询异常
+  autoUpdater.on('error', function (error) {
+    sendUpdateMessage(message.error)
+  })
+// 当开始检查更新的时候触发
+  autoUpdater.on('checking-for-update', function () {
+    sendUpdateMessage(message.checking)
+  })
+// 当发现有可用更新的时候触发，更新包下载会自动开始
+  autoUpdater.on('update-available', function (info) {
+    sendUpdateMessage(message.updateAva)
+    mainWindow.webContents.send('updateAvailable', info)
+  })
+// 当发现版本为最新版本触发
+  autoUpdater.on('update-not-available', function (info) {
+    sendUpdateMessage(message.updateNotAva)
+  })
+  // 更新下载进度事件
+  autoUpdater.on('download-progress', function (progressObj) {
+    mainWindow.webContents.send('downloadProgress', progressObj)
+  })
+ // 包下载成功时触发
+  autoUpdater.on('update-downloaded', function (event, releaseNotes, releaseName, releaseDate, updateUrl, quitAndUpdate) {
+ // 收到renderer进程确认更新
+    ipcMain.on('updateNow', (e, arg) => {
+      console.log('开始更新')
+      autoUpdater.quitAndInstall() // 包下载完成后，重启当前的应用并且安装更新
+    })
+ // 主进程向renderer进程发送是否确认更新
+    mainWindow.webContents.send('isUpdateNow', versionInfo)
+  })
+
+  ipcMain.on('checkForUpdate', () => {
+      // 收到renderer进程的检查通知后，执行自动更新检查
+      // autoUpdater.checkForUpdates()
+      let checkInfo = autoUpdater.checkForUpdates()
+      checkInfo.then(function (data) {
+        versionInfo = data.versionInfo // 获取更新包版本等信息
+      })
+      console.log('checkForUpdate', checkInfo)
+    })
+   ipcMain.on('downloadNow', () => {
+      // 收到renderer进程的下载通知后，执行自动更新下载
+      console.log('开始下载')
+      autoUpdater.downloadUpdate()
+    })
+}
+
+// 通过main进程发送事件给renderer进程，提示更新信息
+function sendUpdateMessage (text) {
+  mainWindow.webContents.send('message', text)
+}
