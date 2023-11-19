@@ -138,7 +138,10 @@ export default {
         refreshUserData() {
             const refugeSettings = getRefugeSettings()
             getUser(this.currentUser.id, this.currentUser.email, this.currentUser.password).then((user) => {
-                console.log(user)
+                // console.log(user)
+                if (refugeSettings.currentUser.hangar_value > 0 && refugeSettings.currentUser.handle === user.handle) {
+                    user.hangar_value = refugeSettings.currentUser.hangar_value
+                }
                 refugeSettings.currentUser = user
                 setRefugeSettings(refugeSettings)
                 this.currentUser = user

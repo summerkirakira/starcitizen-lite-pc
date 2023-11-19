@@ -391,3 +391,7 @@ nativeTheme.themeSource = 'light'
 // ipcMain.handle('dark-mode:system', () => {
 //   nativeTheme.themeSource = 'light'
 // })
+
+ipcMain.on('start-game-error', (event, error: any) => {
+  mainWindow.webContents.send('start-game-error', error)
+})

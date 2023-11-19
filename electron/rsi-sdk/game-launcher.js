@@ -165,6 +165,12 @@ export class GameLauncher {
                 if (error instanceof Error) {
                     const { code, message } = error;
                     electron_log_1.default.error(`${gameName} process exited abnormally (code: ${code || -1}) : ${message}`);
+                    debugger
+                    window.ipcRenderer.send('start-game-error', {
+                        name: `${gameName} process exited abnormally`,
+                        code,
+                        message,
+                    });
                     // if (this.mainWindow.webContents) {
                     //     this.mainWindow.webContents.send(LAUNCHER_LAUNCH_FAILED, {
                     //         name: `${gameName} process exited abnormally`,

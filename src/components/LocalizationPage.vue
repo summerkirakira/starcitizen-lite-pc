@@ -245,15 +245,12 @@ export default {
                 })
                 return
             }
-            
-            try {
-                startGame()
-            } catch (err) {
+            startGame().catch((err) => {
                 this.notification.error({
-                    title: '游戏意外退出',
+                    title: '启动游戏失败',
                     content: err.message
                 })
-            }
+            })
             
 
 
@@ -319,6 +316,19 @@ export default {
         this.updateLocalizationInfo()
         this.checkUpdate()
         this.checkGameIsUpdated()
+
+        this.ipcRenderer = window.ipcRenderer
+
+        this.ipcRenderer.on('start-game-error', (event, error) => {
+            this.notification.error({
+                title: '启动游戏失败',
+                content: error.message
+            })
+        })
+        
+    },
+    onDestoryed() {
+        this.ipcRenderer.removeAllListeners('start-game-error')
     }
 }
 </script>
