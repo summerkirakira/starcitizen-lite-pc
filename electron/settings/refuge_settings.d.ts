@@ -5,6 +5,9 @@ export class GameSettings {
     currentGamePath: string | null;
     currentGameVersion: string;
     otherGamePaths: string[];
+    startOpts: Map<string, string>;
+    disableCores: boolean;
+    enabledCores: boolean[];
 }
 
 export class LocalizationSettings {

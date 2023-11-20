@@ -40,21 +40,38 @@ function checkUUID() {
 }
 
 function initializeGameSettings() {
-    const settings = store.get('refuge_settings', null)
+    let settings = store.get('refuge_settings', null) as any
     if (settings == null) {
         store.set('refuge_settings', {
             gameSettings: {
                 currentGamePath: null,
                 currentGameVersion: null,
                 otherGamePaths: [],
+                startOpts: new Map<string, string>(),
+                disableCores: false,
+                enabledCores: [],
             },
             localizationSettings: null,
         })
     }
+    settings = store.get('refuge_settings', null) as any
+    if (settings.gameSettings.startOpts == undefined) {
+        settings.gameSettings.startOpts = new Map<string, string>()
+    }
+    if (settings.gameSettings.disableCores == undefined) {
+        settings.gameSettings.disableCores = false
+    }
+    if (settings.gameSettings.enabledCores == undefined) {
+        settings.gameSettings.enabledCores = []
+    }
+
+    store.set('refuge_settings', settings)
+
 }
 
 async function fetchLocalizationInfo() {
     const refugeSettings = getRefugeSettings()
+    // console.log(refugeSettings)
     if(refugeSettings.gameSettings.currentGamePath != null) {
         updateLocalizationSettings()
         // console.log(refugeSettings)

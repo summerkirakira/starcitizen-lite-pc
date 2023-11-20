@@ -33,6 +33,7 @@ import { GameFilesManager } from "./game-files-manager";
 // const game_files_manager_1 = __importDefault(require("./game-files-manager"));
 // const { LAUNCHER_LAUNCH_FAILED, LAUNCHER_LAUNCH_STOPPED, LAUNCHER_LAUNCH_SUCCESSFUL } = app_shared_1.IpcEvents;
 const execFilePromise = (0, util_1.promisify)(child_process_1.execFile);
+const execCommandPromise = (0, util_1.promisify)(child_process_1.exec);
 /**
  * Checks that a given path exists
  * @param p The path to check
@@ -97,7 +98,7 @@ export class GameLauncher {
             }
         });
     }
-    start(opts) {
+    start(opts, affinityOpt) {
         return __awaiter(this, void 0, void 0, function* () {
             const { libraryFolder, gameName, channelId, nickname, token, authToken, hostname, port, installDir, executable, launchOptions, servicesEndpoint, network, TMid, } = opts;
             const payload = Object.assign({ username: nickname, token, auth_token: authToken, star_network: {
@@ -116,7 +117,7 @@ export class GameLauncher {
             electron_log_1.default.info(`Launching ${gameName} ${channelId} from (${channelPath})`);
             const execPath = path_1.default.resolve(channelPath, executable);
             const executables = [execPath];
-            const runArgs = launchOptions ? [...this.defaultRunArgs, ...launchOptions.split(' ')] : [...this.defaultRunArgs];
+            let runArgs = launchOptions ? [...this.defaultRunArgs, ...launchOptions.split(' ')] : [...this.defaultRunArgs];
             const payloadFile = path_1.default.join(channelPath, 'loginData.json');
             this.removeLoginData[channelId] = () => {
                 if (this.removeLoginDataTimeout[channelId]) {
@@ -147,7 +148,7 @@ export class GameLauncher {
                 this.removeLoginData[channelId]();
                 yield writePayloadFile(launcherFile, launcherData);
                 yield writePayloadFile(payloadFile, payload);
-                const runFile = yield findLaunchExecutable(executables);
+                let runFile = yield findLaunchExecutable(executables);
                 launchStatistics.startTime = Date.now();
                 // this.mainWindow.webContents.send(LAUNCHER_LAUNCH_SUCCESSFUL, Object.assign(opts, { runFile }));
                 this.isGameRunning = true;
@@ -155,9 +156,19 @@ export class GameLauncher {
                     const settingsFile = yield (0, eac_settings_utilities_1.readSettings)(channelPath);
                     yield (0, eac_settings_utilities_1.writeSettings)(channelPath, Object.assign(Object.assign({}, settingsFile), { parameters: runArgs.join(' ') }));
                 }
-                const execPromise = execFilePromise(runFile, runArgs, runOptions);
-                this.gameProcess = execPromise.child;
-                yield execPromise;
+
+                if (affinityOpt !== null) {
+                    const command = `%ComSpec% /c start "SC" /High /Affinity ${affinityOpt} "${runFile}" ${runArgs.join(' ')}`
+                    debugger
+                    const execPromise = execCommandPromise(command);
+                    this.gameProcess = execPromise.child;
+                    yield execPromise;
+                } else {
+                    const execPromise = execFilePromise(runFile, runArgs, runOptions);
+                    this.gameProcess = execPromise.child;
+                    yield execPromise;
+                }
+                debugger
                 launchStatistics.endTime = Date.now();
                 // this.mainWindow.webContents.send(LAUNCHER_LAUNCH_STOPPED, Object.assign(opts, { statistics: launchStatistics }));
             }

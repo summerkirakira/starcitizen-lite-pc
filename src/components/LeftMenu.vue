@@ -115,14 +115,14 @@ import { useNotification } from 'naive-ui'
     {
       label: () =>
         h(
-          'span',
-          // {
-          //   href: '#/localization',
-          // },
+          'a',
+          {
+            href: '#/settings',
+          },
           '设置'
         ),
       key: 'my-settings',
-      disabled: true,
+      disabled: false,
       icon: renderIcon(SettingsIcon)
     },
     {
@@ -160,11 +160,11 @@ import { useNotification } from 'naive-ui'
             this.selectOpition = clickValue
         },
         showNotInplementedNotificaiton(key: string, option: MenuOption) {
-          if (key === 'my-settings')
-            this.notification.warning({
-                title: '当前功能还在开发中哦',
-                content: '请耐心等待避难所PC更新'
-            })
+          // if (key === 'my-settings')
+          //   this.notification.warning({
+          //       title: '当前功能还在开发中哦',
+          //       content: '请耐心等待避难所PC更新'
+          //   })
         }
     },
     components: {
