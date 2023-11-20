@@ -8,7 +8,7 @@ import { getRefugeSettings, setRefugeSettings } from '../../electron/uitils/sett
 import fs from 'fs'
 import { updateLocalizationSettings, uninstallLocalization } from '../../electron/uitils/files'
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
-import { startGame } from '../../electron/uitils/start-game'
+import { startGame, getAffinityOpt } from '../../electron/uitils/start-game'
 
 const store = new Store()
 

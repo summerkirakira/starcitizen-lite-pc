@@ -6,6 +6,7 @@ import { CirnoApi, getZipFile } from '../network/CirnoAPIService'
 import { RsiGet, RsiPost, RsiPostWithFullResponse, getCsrfToken } from '../network/RsiAPIService'
 import { RsiValidateToken } from '../network/RsiAPIProperty'
 import Store from 'electron-store'
+import os from 'os'
 
 const store = new Store()
 
@@ -394,4 +395,8 @@ nativeTheme.themeSource = 'light'
 
 ipcMain.on('start-game-error', (event, error: any) => {
   mainWindow.webContents.send('start-game-error', error)
+})
+
+ipcMain.handle('get-cpu-info', (event): any => {
+  return os.cpus()
 })

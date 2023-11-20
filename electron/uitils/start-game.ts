@@ -21,6 +21,15 @@ export async function startGame() {
     const isLogin  = await window.RsiApi.checkAccountStatus()
     if (!isLogin) await rsiLauncherSignin()
     const refugeSettings = getRefugeSettings()
+
+    const enabledCores = refugeSettings.gameSettings.enabledCores
+    const CPUInfo = await window.ipcRenderer.invoke('get-cpu-info')
+    let affinityOpt = null
+    if (CPUInfo.length === enabledCores.length) {
+        affinityOpt = getAffinityOpt(enabledCores)
+    } else {
+        console.log('CPU core number is not match')
+    }
     const claim = (await window.RsiApi.getClaims()).data
     const library = await window.RsiApi.getLibrary()
     const authToken = await window.RsiApi.getGameToken(claim)
@@ -64,5 +73,26 @@ export async function startGame() {
     }
     // console.log(startOpt)
     const gameLauncher = new GameLauncher(startOpt)
-    gameLauncher.start(startOpt)
+    gameLauncher.start(startOpt, affinityOpt)
+}
+
+export function getAffinityOpt(enabledCores: boolean[]) {
+    let affinityOpt = ''
+    while (enabledCores.length % 4 != 0) {
+        enabledCores.push(false)
+    }
+    for (let i = 0; i < enabledCores.length; i++) {
+        if (enabledCores[i]) {
+            affinityOpt += '1'
+        } else {
+            affinityOpt += '0'
+        }
+    }
+    affinityOpt = affinityOpt.split('').reverse().join('')
+    console.log("111", affinityOpt)
+    affinityOpt = parseInt(affinityOpt, 2).toString(16)
+    while (affinityOpt.length < enabledCores.length / 4) {
+        affinityOpt = '0' + affinityOpt
+    }
+    return affinityOpt
 }
