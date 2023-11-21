@@ -6,7 +6,7 @@ import { getRefugeSettings } from './settings'
 const store = new Store()
 
 export async function rsiLogin(email: string, password: string) {
-    const recaptcha = (await window.CirnoApi.getRecaptchaToken()).captcha_list[0].token
+    const recaptcha = await window.CirnoApi.getRecaptchaToken()
     const response = await window.RsiApi.login(email, password, recaptcha, true)
     const loginResponse = response.data as RsiLoginResponse
     if (loginResponse.errors === undefined) {
@@ -41,7 +41,7 @@ export async function rsiForceLogin(email: string, password: string) {
     window.webSettings.rsi_token = ''
     await refreshCsrfToken()
     // delay 4000ms to avoid csrf token error
-    await new Promise(resolve => setTimeout(resolve, 8000));
+    await new Promise(resolve => setTimeout(resolve, 4000));
     return rsiLogin(email, password)
 }
 

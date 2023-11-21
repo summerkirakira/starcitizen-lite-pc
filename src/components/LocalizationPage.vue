@@ -10,6 +10,8 @@ import { updateLocalizationSettings, uninstallLocalization } from '../../electro
 import { LocalizationInfo } from '../../electron/network/CirnoAPIProperty'
 import { startGame, getAffinityOpt } from '../../electron/uitils/start-game'
 
+import { getRecaptchaToken } from '../../electron/network/reCaptcha'
+
 const store = new Store()
 
 declare class Label {
@@ -23,6 +25,7 @@ export default {
     },
     setup() {
         const notification = useNotification()
+
         return {
             notification,
             value: ""

@@ -4,6 +4,7 @@ import Store from 'electron-store'
 import fs from "fs"
 import path from "path"
 import crypto from "crypto"
+import { getRecaptchaToken } from './reCaptcha';
 
 
 const BASE_URL = 'http://biaoju.site:6088/'
@@ -93,8 +94,8 @@ export class CirnoApi {
         return fetchCirnoAPIGet<AvailiableLocalization[]>('localization/list')
     }
 
-    async getRecaptchaToken(): Promise<ReCaptchaResponse> {
-        return fetchCirnoAPIGet<ReCaptchaResponse>('v2/reCaptchaV3PC')
+    async getRecaptchaToken(): Promise<string> {
+        return getRecaptchaToken()
     }
 
     async getResourceInfo(versionRequest: VersionRequestPostBody): Promise<VersionResponse> {
