@@ -40,7 +40,7 @@
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.4",
     "echarts": "^5.4.3",
-    "electron-log": "^4.4.8",
+    "electron-log": "^5.0.3",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.4",
     "fs-extra": "^11.1.1",
