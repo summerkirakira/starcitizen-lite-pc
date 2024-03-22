@@ -112,6 +112,7 @@ export function validateFolder(folder_path: string, files: FileSturcture[]): str
             continue
         }
         const fileHash = calculateFileHash(filePath)
+        console.log(fileHash)
         if (fileHash != file.md5) {
             missingFiles.push(file.name)
         }

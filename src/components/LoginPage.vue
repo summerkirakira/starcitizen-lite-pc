@@ -7,6 +7,7 @@ import {
     NFormItemRow,
     NButton,
     NInput,
+    NModal,
 useNotification
  } from 'naive-ui';
 
@@ -14,6 +15,7 @@ useNotification
  import { addUserToDatabase, getRefugeSettings, setRefugeSettings } from '../../electron/uitils/settings'
  import { getUser } from '../../electron/network/user-parser/UserParser'
  import { User } from '../../electron/database/DatabaseEntities'
+import { RsiApiService } from '../../electron/network/RsiAPIService';
 
 function addNewUser(user: User) {
     const refugeSettings = getRefugeSettings()
@@ -34,7 +36,8 @@ export default {
         NForm,
         NFormItemRow,
         NButton,
-        NInput
+        NInput,
+        NModal
     },
     setup() {
         const notification = useNotification()
@@ -48,24 +51,31 @@ export default {
             isLoginBtnLoading: false,
             loginEmailInputValue: '',
             loginPasswordInputValue: '',
-            loginCodeInputValue: ''
+            loginCodeInputValue: '',
+            captcha: null,
+            showCaptcha: false,
+            captchaImage: ''
         }
     },
     methods: {
         handleLoginBtnClicked() {
             this.isLoginBtnLoading = true
+            if (this.showCaptcha) {
+                this.showCaptcha = false
+            }
             if (this.isMultiStepVisible) {
                 rsiMultiStepLogin(this.loginCodeInputValue).then((res: any) => {
                     // console.log(res)
                     if (res) {
                         try {
-                          getUser(res.data.account_multistep.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
+                          getUser(12138, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
                             addNewUser(user)
                             const refugeSettings = getRefugeSettings()
                               this.notification.success({
                                 title: '登录成功',
                                 content: `账号：${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id}) 已登录`
                             })
+                            this.captcha = null
                             this.isMultiStepVisible = false
                             this.loginEmailInputValue = ''
                             this.loginPasswordInputValue = ''
@@ -97,15 +107,17 @@ export default {
                 return
             }
             if (this.loginEmailInputValue && this.loginPasswordInputValue) {
-                rsiForceLogin(this.loginEmailInputValue, this.loginPasswordInputValue).then((res) => {
-                    // console.log(res)
+                rsiForceLogin(this.loginEmailInputValue, this.loginPasswordInputValue, this.captcha).then((res) => {
+                    if (this.captcha != null) {
+                        this.captcha = null
+                    }
                     if (res) {
-                        getUser(res.data.account_signin.id, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
+                        getUser(12138, this.loginEmailInputValue, this.loginPasswordInputValue).then((user) => {
                           try {
                             addNewUser(user)
                             this.notification.success({
                               title: '登录成功',
-                              content: `账号：${res.data.account_signin.displayname}(${res.data.account_signin.id}) 已登录`
+                              content: `账号：${user.handle} 已登录`
                           })
                             this.loginEmailInputValue = ''
                             this.loginPasswordInputValue = ''
@@ -132,12 +144,23 @@ export default {
                         this.isMultiStepVisible = true
                         this.isLoginBtnLoading = false
                         return
-                    } else if (err.message === 'CFUValidationException') {
-                        errorMessage = '校验码错误，请稍后重试'
-                    } else if (err.message === 'MultiStepWrongCodeException') {
-                        errorMessage = '验证码错误'
+                    } else if (err.message === 'ErrCaptchaRequiredLauncher') {
+                        window.RsiApi.rsiLauncherCaptcha().then((res) => {
+                            this.showCaptcha = true
+                            this.captchaImage = res
+                        })
+                        return
+                    } else if (err.message === 'ErrInvalidChallengeCode') {
+                        this.notification.error({
+                          title: '验证码错误',
+                          content: errorMessage
+                      })
+                      this.captcha = null
+                      this.isLoginBtnLoading = false
+                      return
                     }
                     console.log(err)
+                    this.captcha = null
                     this.isLoginBtnLoading = false
                     this.notification.error({
                         title: '登录失败',
@@ -200,6 +223,19 @@ export default {
         </n-tab-pane>
       </n-tabs>
     </n-card>
+    <n-modal v-model:show="showCaptcha" preset="dialog" title="Dialog">
+    <template #header>
+      <div>需要验证码</div>
+    </template>
+      <div>
+        <img :src="captchaImage" />
+        <n-input v-model:value="captcha" placeholder="请输入验证码" />
+      </div>
+    <template #action>
+      <n-button type="primary" @click="handleLoginBtnClicked">确定</n-button>
+      <n-button @click="showCaptcha = false">取消</n-button>
+    </template>
+  </n-modal>
 </div>
   </template>
   

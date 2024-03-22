@@ -162,8 +162,8 @@ export default {
                 //     label: '星图'
                 // },
                 {
-                    url: 'https://robertsspaceindustries.com/download',
-                    label: '游戏下载'
+                    url: 'https://support.robertsspaceindustries.com',
+                    label: '游戏支持'
                 }
             ],
             gameTools: [
