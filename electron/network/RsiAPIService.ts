@@ -73,6 +73,20 @@ async function MultiStepRsiLogin(code: string, headers: any): Promise<RsiLoginRe
     return data
 }
 
+async function LauncherMultiStepRsiLogin(code: string, headers: any): Promise<RsiLoginResponse> {
+    const postData = {
+        "code": code,
+        "device_type": "computer",
+        "device_name": "RefugePC",
+        "duration": "year"
+    }
+    const data = await RsiPost<RsiLoginResponse>('api/launcher/v3/signin/multiStep', postData, {
+        'x-rsi-token': window.webSettings.rsi_token,
+        'x-rsi-device': window.webSettings.rsi_device,
+    })
+    return data
+}
+
 export async function getCsrfToken(rsi_token: string, rsi_device: string): Promise<RsiValidateToken> {
     // Please note that this function is only avaliable in main process
     console.log('Getting csrf token', rsi_token, rsi_device)
@@ -151,7 +165,7 @@ export class RsiApiService {
     }
 
     async multiStepLogin(code: string): Promise<RsiLoginResponse> {
-        return await MultiStepRsiLogin(code, this.getHeaders())
+        return await LauncherMultiStepRsiLogin(code, this.getHeaders())
     }
 
     async getClaims(): Promise<RsiLauncherClaimResponse> {
@@ -180,6 +194,32 @@ export class RsiApiService {
             'x-rsi-device': window.webSettings.rsi_device,
         })
         return signin
+    }
+
+    async rsiLauncherLogin(email: String, password: String, captcha: string | null): Promise<RsiLauncherSigninResponse> {
+        const signin = await RsiPost<RsiLauncherSigninResponse>('api/launcher/v3/signin', {
+            "password": password,
+            "username": email,
+            "captcha": captcha
+        }, {
+            'x-rsi-device': window.webSettings.rsi_device,
+            'x-rsi-token': window.webSettings.rsi_token
+        })
+        return signin
+    }
+
+    async rsiLauncherCaptcha(): Promise<string> {
+        const response = await axios.post('https://robertsspaceindustries.com/api/launcher/v3/signin/captcha',
+            {}, {
+                headers: {
+                    'x-rsi-token': window.webSettings.rsi_token
+                },
+                responseType: "blob"
+            }
+          );
+        const blob = new Blob([response.data], { type: 'image/png' });
+        const url = URL.createObjectURL(blob);
+        return url
     }
 
     async getGameToken(claims: string): Promise<string> {

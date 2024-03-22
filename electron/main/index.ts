@@ -309,6 +309,7 @@ ipcMain.handle('open-external', (event, url: string): void => {
 const { autoUpdater } = require('electron-updater')
 const server = 'http://biaoju.site/starcitizen';
 const updateUrl = `${server}/update/${process.platform}`;
+console.log('updateUrl', updateUrl);
 // 检测更新，在你想要检查更新的时候执行，renderer事件触发后的操作自行编写
 function updateHandle () {
   let message = {

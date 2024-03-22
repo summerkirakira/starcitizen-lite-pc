@@ -7,6 +7,7 @@ import { getBillingsEchartOptions, getTimeBillingEchartOptions } from '../utils/
 import { ref } from 'vue';
 import { getUser } from '../../electron/network/user-parser/UserParser'
 import { applyUserSettings } from '../../electron/uitils/signin'
+import { rsiForceLogin } from '../../electron/uitils/signin'
 
 import * as echarts from 'echarts/core';
 import { 
@@ -147,6 +148,7 @@ export default {
                 this.currentUser = user
                 this.refresh_key += 1
             })
+            this.checkUserStatus()
         },
         createCharts(needRefresh: boolean = false) {
             let option = getBillingsEchartOptions(getStoredBillingItems());
@@ -204,6 +206,58 @@ export default {
             console.log(this.currentUser)
             this.refresh_key += 1
             // window.location.hash = '#/user-profile'
+        },
+        checkUserStatus() {
+            window.RsiApi.checkAccountStatus().then((res) => {
+            console.log(res)
+        if (res) {
+            const refugeSettings = getRefugeSettings()
+            this.message.success(
+            `登录成功~欢迎回来，${refugeSettings.currentUser.handle}`,
+            { duration: 5000 }
+            )
+        } else {
+            let refugeSettings = getRefugeSettings()
+
+            rsiForceLogin(refugeSettings.currentUser.email, refugeSettings.currentUser.password).then((res) => {
+            if (res.errors != null) {
+                this.notification.error({
+                title: '登录失败',
+                content: '请重新登录'
+                })
+                const refugeSettings = getRefugeSettings()
+                refugeSettings.currentUser = null
+                setRefugeSettings(refugeSettings)
+                return
+            }
+            const refugeSettings = getRefugeSettings()
+            refugeSettings.currentUser.rsi_token = window.webSettings.rsi_token
+            setRefugeSettings(refugeSettings)
+            applyUserSettings()
+            this.message.success(
+                `重新登录成功...欢迎回来，${refugeSettings.currentUser.handle}(${refugeSettings.currentUser.id})`,
+                { duration: 5000 }
+            )
+            }).catch((err) => {
+            this.notification.error({
+                title: '自动登录失败',
+                content: `请重新登录 (${err.message}})`
+            })
+            const refugeSettings = getRefugeSettings()
+            removeUserFromDatabase(refugeSettings.currentUser)
+            refugeSettings.currentUser = null
+            setRefugeSettings(refugeSettings)
+            })
+        }
+        }).catch((err) => {
+        this.notification.error({
+            title: '自动登录失败',
+            content: `请重新登录 (${err.message}})`
+        })
+        const refugeSettings = getRefugeSettings()
+        refugeSettings.currentUser = null
+        setRefugeSettings(refugeSettings)
+        })
         }
     },
     computed: {

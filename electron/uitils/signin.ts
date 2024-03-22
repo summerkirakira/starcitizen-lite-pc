@@ -37,12 +37,34 @@ export async function rsiLogin(email: string, password: string) {
     throw new Error(loginResponse.errors[0].code)
 }
 
-export async function rsiForceLogin(email: string, password: string) {
-    window.webSettings.rsi_token = ''
+export async function rsiLauncherLogin(email: string, password: string, captcha: string | null) {
+    const response = await window.RsiApi.rsiLauncherLogin(email, password, captcha)
+    if(response.success == 1) {
+        window.webSettings.rsi_token = response.data.session_id
+        store.set('rsi_token', window.webSettings.rsi_token)
+        return response
+    } else if(response.code == "ErrMultiStepRequired") {
+        window.webSettings.rsi_token = response.data.session_id
+        if (response.data.device_id != null) {
+            window.webSettings.rsi_device = response.data.device_id
+            store.set('rsi_device', window.webSettings.rsi_device)
+        }
+        store.set('rsi_token', window.webSettings.rsi_token)
+        throw new Error('MultiStepRequiredException')
+    } else if (response.code == "ErrCaptchaRequiredLauncher") {
+        window.webSettings.rsi_token = response.data.session_id
+        store.set('rsi_token', window.webSettings.rsi_token)
+        throw new Error("ErrCaptchaRequiredLauncher")
+    } else {
+        throw new Error(response.code)
+    }
+}
+
+export async function rsiForceLogin(email: string, password: string, captcha: string | null = null) {
     await refreshCsrfToken()
     // delay 4000ms to avoid csrf token error
     await new Promise(resolve => setTimeout(resolve, 4000));
-    return rsiLogin(email, password)
+    return rsiLauncherLogin(email, password, captcha)
 }
 
 export async function rsiMultiStepLogin(code: string) {

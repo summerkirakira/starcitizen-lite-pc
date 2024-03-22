@@ -7,13 +7,14 @@ export interface RsiLauncherSigninResponse {
     code: string;
     success: number;
     data: {
-        account_id: number;
-        avatar: string;
-        citizen_id: number;
-        displayname: string;
-        nickname: string;
+        // account_id: number;
+        // avatar: string;
+        // citizen_id: number;
+        // displayname: string;
+        // nickname: string;
         session_id: string;
-        tracking_metrics_id: string;
+        // tracking_metrics_id: string;
+        device_id: string | null;
     } | null;
 }
 
